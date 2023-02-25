@@ -1,5 +1,11 @@
 # Notes for CPCFI courses
 
+Clone with recursive repo
+
+```sh
+git clone --recursive -j2 https://gitlab.com/ksobrenat32/cpcfi.git
+```
+
 ## Operators
 
 OPERATOR | WHAT | # ELEMENTS
