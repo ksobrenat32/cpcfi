@@ -1,4 +1,4 @@
-// Codeforces link:
+// Problem link:
 //
 
 #include <bits/stdc++.h>
