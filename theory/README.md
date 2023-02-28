@@ -224,6 +224,12 @@ When representing a tree in an array we can get that the number of vertix
 - left: `2i`
 - right: `2i + 1`
 
+## Complete search
+
+Generate all posible solutions with brute force and then count or select the
+ correct solution
+
+
 ## MISC
 
 In c++ you can process between 10⁷ and 10⁸ operations per second.
@@ -231,3 +237,6 @@ In c++ you can process between 10⁷ and 10⁸ operations per second.
 You should always check time and memory
 
 Write macros with UPPERCASE
+
+- Complete search -> recursive
+- Bruteforce -> iterative
