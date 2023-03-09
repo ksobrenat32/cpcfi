@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eo pipefail
+
 # The program to compile and run
 PNAME=${1%.cpp}
 
