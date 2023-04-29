@@ -10,13 +10,14 @@ vector<vector<int>> adj(n); // adjacency
 void bfs(int s){
     queue<int> q;
     q.push(s);
+    visited[q.front()]=true;
 
     while(! q.empty()){
         cout << q.front() << endl;
-        visited[q.front()]=true;
         for(size_t i = 0; i < adj[q.front()].size(); i++){
             if(!visited[adj[q.front()][i]]){
                 q.push(adj[q.front()][i]);
+                visited[adj[q.front()][i]]=true;
             }
         }
         q.pop();
