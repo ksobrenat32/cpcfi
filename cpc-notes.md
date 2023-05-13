@@ -1,5 +1,37 @@
 # Competitive programming notes
 
+## Vim configuration
+
+```vim
+" Set internal encoding of vim
+set encoding=utf-8
+" Sintax highlighting
+syntax on
+" Show line number
+set number
+" Show command
+set showcmd
+"  Show line where the cursor is
+set cursorline
+" Identify specific file types
+filetype indent on
+" Command autocompletation
+set wildmenu
+" Highlight matching (){}[]
+set showmatch
+" Searching configuration
+set incsearch
+set hlsearch
+" How to set splitted content
+set splitbelow
+set splitright
+set diffopt=vertical
+" Configure indents as 4 spaces
+set tabstop=8 softtabstop=0 expandtab shiftwidth=4 smarttab
+" set the backspace to delete normally
+set backspace=indent,eol,start
+```
+
 ## Template
 
 ```c++
