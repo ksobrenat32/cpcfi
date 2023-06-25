@@ -4,7 +4,7 @@ using namespace std;
 #define FO(i, b)                    for (int i = 0; i < (b); i++)
 #define FOR(i, a, b)                for (int i = (a); i < (b); i++)
 #define rFOR(i, a, b)               for (int i = (a); i > (b); i--)
-#define TR(v, arr)                  for (auto& (v) : (arr))
+#define TR(v, arr)                  for (auto& v : (arr))
 #define pb                          push_back
 #define mp                          make_pair
 #define F                           first
