@@ -6,7 +6,16 @@ set -eo pipefail
 PNAME=${1%.cpp}
 
 # Compile the program
-g++ -g3 -o3 -Wall -Werror -pipe "$1" -o "${PNAME}.o"
+if [[ $2 == no ]]; then
+    g++ -o3 -pipe "$1" -o "${PNAME}.o"
+else 
+    g++ -g3 -o3 -Wall -Werror -pipe "$1" -o "${PNAME}.o"
+fi
+
 
 # Run with input
-"./${PNAME}.o" < "in-${PNAME}"
+if [[ $2 == time ]]; then
+    time "./${PNAME}.o" < "in-${PNAME}"
+else 
+    "./${PNAME}.o" < "in-${PNAME}"
+fi
