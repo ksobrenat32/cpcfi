@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+#define endl                        '\n'
 #define FO(i, b)                    for (int i = 0; i < (b); i++)
 #define FOR(i, a, b)                for (int i = (a); i < (b); i++)
 #define rFOR(i, a, b)               for (int i = (a); i > (b); i--)
@@ -29,6 +30,8 @@ inline void solve(){
 }
 
 int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
     int T=1;
     //cin>>T;
     FO(tc,T){
