@@ -5,15 +5,14 @@ set -eo pipefail
 # The program to compile and run
 PNAME=${1%.cpp}
 
-# Compile the program
-if [[ $2 == no ]]; then
-    g++ -o3 -pipe "$1" -o "${PNAME}.o"
+# Compile the program ignoring errors
+if [[ $2 == --no-error ]]; then
+    g++ -std=c++17 -o3 -pipe "$1" -o "${PNAME}.o"
 else 
-    g++ -g3 -o3 -Wall -Werror -pipe "$1" -o "${PNAME}.o"
+    g++ -std=c++17 -g3 -o3 -Wall -Werror -pipe "$1" -o "${PNAME}.o"
 fi
 
-
-# Run with input
+# Run input with time
 if [[ $2 == time ]]; then
     time "./${PNAME}.o" < "in-${PNAME}"
 else 
