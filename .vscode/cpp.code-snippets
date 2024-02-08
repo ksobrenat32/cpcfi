@@ -1,0 +1,61 @@
+{
+	"template": {
+		"description" : "",
+		"scope": "cpp",
+		"prefix" : [""],
+		"body" : [
+		]
+	}
+
+	"Is prime number": {
+		"description" : "If a number is prime",
+		"scope": "cpp",
+		"prefix" : ["isPrime"],
+		"body" : [
+			"bool prime($1 t){",
+			"\tif(t%2 == 0){",
+			"\t\treturn false;",
+			"\t} else {",
+			"\t\tfor($1 i=3; i*i <=t; i+=2){",
+			"\t\t\tif((t%i)==0){",
+			"\t\t\t\treturn false;",
+			"\t\t\t}",
+			"\t\t}",
+			"\t}",
+			"\treturn true;",
+			"}"
+		]
+	},
+
+	"Greatest common divisor": {
+		"description" : "Greates common divisor between two numbers",
+		"scope": "cpp",
+		"prefix" : ["gcd"],
+		"body" : [
+			"$1 gcd ( $1 a , $1 b ) {"
+			"\tif ( b == 0) return a;"
+			"\treturn gcd (b , a % b );"
+			"}"
+		]
+	},
+
+	"Greatest common divisor extended": {
+		"description" : "Greates common divisor between two numbers extended",
+		"scope": "cpp",
+		"prefix" : ["egcd"],
+		"body" : [
+			"$1 gcdExtended($1 a, $1 b, $1 *x, $1 *y) {"
+			"\tif (a == 0) {"
+			"\t\t*x = 0;"
+			"\t\t*y = 1;"
+			"\t\treturn b;"
+			"\t}"
+			"\t$1 x1, y1;"
+			"\t$1 gcd = gcdExtended(b%a, a, &x1, &y1);"			 
+			"\t*x = y1 - (b/a) * x1;"
+			"\t*y = x1;"
+			"\treturn gcd;"
+			"}"
+		]
+	}
+}
