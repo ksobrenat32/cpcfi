@@ -90,6 +90,14 @@ float | -3.4×10^38 to 3.4×10^38 | 4
 double | -1.7×10^308 to1.7×10^308 | 8
 long double | -1.1×10^4932 to1.1×10^4932 | 12
 
+## Input
+
+Read while input is provided
+
+```c++
+while(getline(cin, s))
+```
+
 ## Number theory
 
 ### Prime
