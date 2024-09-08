@@ -506,6 +506,23 @@ int mx = max( mx, x );
 int mi = min( mi, x );
 ```
 
+## Math
+
+### Combinations
+
+Number of ways to make a square of size k x k in a grid of size n x n
+
+```c++
+ll sqr_comb(ll n){
+    ll r=0;
+    for(ll i=1; i<=n; i++){
+        r += (n-i+1)*(n-i+1);
+    }
+    return r;
+}
+```
+
+
 ## ASCII useful
 
 ![ASCII TABLE](https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/ASCII-Table.svg/2522px-ASCII-Table.svg.png)
