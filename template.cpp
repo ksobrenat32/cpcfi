@@ -10,7 +10,7 @@ using namespace std;
 #define mp                          make_pair
 #define F                           first
 #define S                           second
-#define all(x)                      x.begin(), x.end() 
+#define all(x)                      x.begin(), x.end()
 #define sz(x)                       (int) x.size()
 typedef long long ll;
 typedef vector<int> vi;

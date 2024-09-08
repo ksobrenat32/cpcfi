@@ -48,7 +48,7 @@ using namespace std;
 #define mp                      make_pair
 #define F                       first
 #define S                       second
-#define all(x)                  x.begin(), x.end() 
+#define all(x)                  x.begin(), x.end()
 #define sz(x)                   (int) x.size()
 #define LB(arr, x)              lower_bound(all(arr), x)-(arr).begin()
 #define UB(arr, x)              upper_bound(all(arr), x)-(arr).begin()
@@ -134,7 +134,7 @@ int lcm ( int a, int b ){
 }
 ```
 
-### Gaus
+### Gauss
 
 ```c++
 long long sum = n * (n+1) / 2;
@@ -153,8 +153,8 @@ int bs(int N, int x, vector<int> v){
 
         if(v[mid] == x){
             return mid;
-        } 
-        
+        }
+
         if(v[mid] < x ){
             L = mid + 1 ;
         } else {
@@ -182,8 +182,8 @@ int lb(int N, int x, vector<int> v){
                 mid--;
             }
             return mid+1;
-        } 
-        
+        }
+
         if(v[mid] < x ){
             L = mid + 1 ;
         } else {
@@ -211,8 +211,8 @@ int ub(int N, int x, vector<int> v){
                 mid++;
             }
             return mid-1;
-        } 
-        
+        }
+
         if(v[mid] < x ){
             L = mid + 1 ;
         } else {
@@ -274,7 +274,7 @@ Print connected notes
 void conex(int s, vector<vector<int>> &adj, vector<bool> &visited){
     for(size_t i = 0; i < adj.size(); i++){
         if(!visited[i]){
-            bfs(i);            
+            bfs(i);
         }
         cout << endl;
     }
@@ -337,8 +337,7 @@ char colon;
 
 // Createa a stringstream object
 stringstream ss(fullString);
-// Extract the strings 
-
+// Extract the strings
 ss >> a >> colon >> b >> comma >> c;
 ```
 
