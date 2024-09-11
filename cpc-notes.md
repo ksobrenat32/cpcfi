@@ -521,6 +521,73 @@ ll sqr_comb(ll n){
 }
 ```
 
+## Data structures
+
+### Segment tree
+
+In this case we are going to use a segment tree to store the product of the elements of an array. Be careful with overflows.
+
+```c++
+class segment_tree {
+    public:
+        vi bt;
+        int orig_size;
+
+    segment_tree(vi v){
+        // Create the tree
+        bt.resize(4*sz(v)+1);
+        orig_size = sz(v);
+
+        // Copy values
+        for(int i = 0; i < sz(v); i++){
+            bt[sz(v) + i] = v[i];
+        }
+
+        // Build the tree
+        for(int i = sz(v)-1; i > 0; i--){
+            bt[i] = bt[i*2] * bt[(i*2)+1];
+        }
+    }
+
+    void update(int node, int value){
+        // Update the value
+        node += orig_size;
+
+        // Update the parents
+        bt[node] = value;
+
+        while(node > 1){
+            node /= 2;
+            bt[node] = bt[node*2] * bt[(node*2)+1];
+        }
+    }
+
+    void query(int a, int b){
+        ll res = 1;
+
+        a += orig_size;
+        b += orig_size;
+
+        while(a <= b){
+            if(a % 2 == 1){
+                res *= bt[a];
+                a++;
+            }
+
+            if(b % 2 == 0){
+                res *= bt[b];
+                b--;
+            }
+
+            a /= 2;
+            b /= 2;
+        }
+
+        cout << res << endl;
+    }
+};
+```
+
 
 ## ASCII useful
 
