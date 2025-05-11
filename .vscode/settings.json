@@ -6,5 +6,10 @@
         "nand",
         "stdc",
         "typedef"
-    ]
+    ],
+    "files.associations": {
+        "iomanip": "cpp",
+        "valarray": "cpp",
+        "random": "cpp"
+    }
 }
