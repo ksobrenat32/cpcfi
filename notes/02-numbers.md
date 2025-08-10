@@ -103,3 +103,16 @@ ll sqr_comb(ll n){
     return r;
 }
 ```
+
+### Bitwise
+
+```c++
+int a = 5;      // 0101 in binary
+int b = 3;      // 0011 in binary
+int c = a & b;  // 0001 in binary (AND)
+int d = a | b;  // 0111 in binary (OR)
+int e = a ^ b;  // 0110 in binary (XOR)
+int f = ~a;     // 1010 in binary (NOT)
+int g = a << 1; // 1010 in binary (left shift)
+int h = a >> 1; // 0010 in binary (right shift)
+```
