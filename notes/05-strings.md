@@ -6,6 +6,25 @@
 int i = c - '0';
 ```
 
+### Convert number to string
+
+```c++
+string s = to_string(x);
+```
+
+### Convert number to binary string
+
+```c++
+string to_binary(int n) {
+    string result;
+    while (n > 0) {
+        result = char((n % 2) + '0') + result;
+        n /= 2;
+    }
+    return result.empty() ? "0" : result;
+}
+```
+
 ### To upper and to lower case
 
 ```c++
