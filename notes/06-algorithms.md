@@ -172,3 +172,19 @@ class segment_tree {
     }
 };
 ```
+
+### Binpow
+
+```c++
+long long power(long long a, long long b, long long m) {
+    long long result = 1 % m;
+    a %= m;
+    while(b) {
+        if (b & 1) 
+        result = (result * a) % m;
+        a = (a * a) % m;
+        b >>= 1;
+    }
+    return result;
+}
+```
