@@ -9,6 +9,9 @@ on:
       - master
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-pdf:
     runs-on: ubuntu-latest
@@ -16,43 +19,33 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
-    - name: Setup Pandoc
-      uses: r-lib/actions/setup-pandoc@v2
-      with:
-        pandoc-version: 'latest'
-        
-    - name: Install LaTeX
+
+    - name: Install Pandoc
       run: |
         sudo apt-get update
-        sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic
-        
+        sudo apt-get install -y pandoc texlive-xetex
+
     - name: Build PDF
       run: |
         cd notes
-        chmod +x build.sh
-        ./build.sh
-        
-    - name: Upload PDF as artifact
-      uses: actions/upload-artifact@v4
+        bash build.sh
+  
+
+    - name: Generate release tag
+      id: tag
+      run: |
+        echo "tag=release-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: notes-pdf
-        path: notes/notes.pdf
-        retention-days: 30
-        
-    - name: Create Release (on main/master branch)
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: notes-${{ github.run_number }}
+        files: notes/notes.pdf
+        tag_name: ${{ steps.tag.outputs.tag }}
         name: Notes PDF - Build ${{ github.run_number }}
         body: |
           Automatically generated PDF from competitive programming notes.
           
           Generated from commit: ${{ github.sha }}
           Date: ${{ github.event.head_commit.timestamp }}
-        files: notes/notes.pdf
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        

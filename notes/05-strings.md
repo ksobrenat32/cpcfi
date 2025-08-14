@@ -97,5 +97,4 @@ return result;
 
 ### ASCII table
 
-![ASCII TABLE](https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/ASCII-Table.svg/2522px-ASCII-Table.svg.png)
-
+![ASCII TABLE](./img/ASCII-Table.png)
