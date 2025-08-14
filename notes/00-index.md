@@ -62,3 +62,4 @@ long double | -1.1×10^4932 to1.1×10^4932 | 12
 - [Graphs](./04-graphs.md)
 - [Strings](./05-strings.md)
 - [Algorithms](./06-algorithms.md)
+- [Geometry](./07-geometry.md)

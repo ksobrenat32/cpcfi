@@ -1,6 +1,167 @@
 
 ## General algorithms
 
+### Union Find (Disjoint Set Union)
+
+#### Functions
+
+- Union: O(log N)
+- Find: O(log N)
+
+Add the smaller to the bigger (union by size).
+
+#### Implementation
+
+```c++
+class UnionFind {
+    vector<int> parent, size;
+public:
+    UnionFind(int n) {
+        parent.resize(n);
+        size.resize(n);
+        // Create node, size 1 and point to itself
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+            size[i] = 1;
+        }
+    }
+    
+    // Find the representative
+    int find(int x) {
+        if (x != parent[x]) {
+            parent[x] = find(parent[x]); // Path compression
+        }
+        return parent[x];
+    }
+    
+    // Union two sets
+    void unite(int x, int y) {
+        x = find(x);
+        y = find(y);
+        
+        if (x != y) {
+            if (size[x] < size[y]) {
+                swap(x, y);
+            }
+            // Change data
+            parent[y] = x;
+            size[x] += size[y];
+        }
+    }
+    
+    bool connected(int x, int y) {
+        return find(x) == find(y);
+    }
+};
+```
+
+### Fenwick Tree (Binary Indexed Tree)
+
+Given an array of integer values, compute the range of associative functions between index [i,j).
+
+#### Complexity
+
+- Construction: O(N)
+- Point update: O(log N)
+- Range sum: O(log N)
+- Range update: O(log N)
+- Adding index: N/A
+- Delete index: N/A
+
+#### Responsibility
+
+A cell is responsible for other cells. The position of the least significant bit determines the range of responsibility.
+
+#### Implementation
+
+```c++
+class FenwickTree {
+    vector<int> tree;
+    int n;
+
+public:
+    FenwickTree(int size) {
+        n = size;
+        tree.assign(n + 1, 0);
+    }
+    
+    // Add val to position idx (1-indexed)
+    void update(int idx, int val) {
+        for (; idx <= n; idx += idx & -idx) {
+            tree[idx] += val;
+        }
+    }
+    
+    // Get prefix sum up to idx (1-indexed)
+    int query(int idx) {
+        int sum = 0;
+        for (; idx > 0; idx -= idx & -idx) {
+            sum += tree[idx];
+        }
+        return sum;
+    }
+    
+    // Get range sum [l, r] (1-indexed)
+    int rangeQuery(int l, int r) {
+        return query(r) - query(l - 1);
+    }
+};
+```
+
+### Sparse Table
+
+#### Binary representation
+
+A number can be represented with [log2(N)] + 1 in powers of 2.
+
+#### Prerequisites
+
+- Immutable array
+- Associative function for O(n log n) range query
+- Overlap friendly function O(1) range query (max, min, gcd, lcm)
+
+#### Implementation
+
+```c++
+class SparseTable {
+    vector<vector<int>> st;
+    vector<int> logs;
+    
+public:
+    SparseTable(vector<int>& arr) {
+        int n = arr.size();
+        int maxLog = 0;
+        while ((1 << maxLog) <= n) maxLog++;
+        
+        st.assign(maxLog, vector<int>(n));
+        logs.assign(n + 1, 0);
+        
+        // Precompute logs
+        for (int i = 2; i <= n; i++) {
+            logs[i] = logs[i / 2] + 1;
+        }
+        
+        // Fill first row
+        for (int i = 0; i < n; i++) {
+            st[0][i] = arr[i];
+        }
+        
+        // Fill table
+        for (int j = 1; j < maxLog; j++) {
+            for (int i = 0; i + (1 << j) <= n; i++) {
+                st[j][i] = max(st[j-1][i], st[j-1][i + (1 << (j-1))]);
+            }
+        }
+    }
+    
+    // O(1) range maximum query
+    int query(int l, int r) {
+        int j = logs[r - l + 1];
+        return max(st[j][l], st[j][r - (1 << j) + 1]);
+    }
+};
+```
+
 ### Rolling hash
 
 A rolling hash is a hash function where the input is hashed in a window that moves through the input. The hash value at each window is calculated from the hash value of the previous window. This is useful to compare strings in O(1) time.
