@@ -76,6 +76,25 @@ stringstream ss(fullString);
 ss >> a >> colon >> b >> comma >> c;
 ```
 
+### Stringstream to string
+
+Some times its easier to use a stringstream to convert between strings and other types.
+
+```c++
+stringstream ss;
+ss << value1 << value2;
+return ss.str();
+```
+
+### Create a string that repeats a character
+
+```c++
+char c = 'a';
+int n = 5;
+string result(n, c);
+return result;
+```
+
 ### ASCII table
 
 ![ASCII TABLE](https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/ASCII-Table.svg/2522px-ASCII-Table.svg.png)
