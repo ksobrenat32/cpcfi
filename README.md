@@ -1,7 +1,5 @@
 # Repo for competitive programming
 
-Clone recursively the repo with submodules
+This is a repo for my competitive programming things. It contains notes, problem solutions and some scripts
 
-```sh
-git clone --recursive -j2 https://gitlab.com/ksobrenat32/cpcfi.git
-```
+A more complete algorithms cheat sheet can be found in my teammate's [repo](https://github.com/GustavoVaAsc/ICPCNotes).
