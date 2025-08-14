@@ -1,9 +1,0 @@
-[submodule "lectures"]
-	path = theory/lectures
-	url = https://github.com/CPCFI-org/lectures
-[submodule "theory/Competitive-Programming-Notes"]
-	path = theory/Competitive-Programming-Notes
-	url = https://github.com/FredinVazquez/Competitive-Programming---Notes
-[submodule "theory/data-structures-and-algorithms"]
-	path = theory/data-structures-and-algorithms
-	url = https://github.com/FredinVazquez/data-structures-and-algorithms
