@@ -61,6 +61,14 @@ bool prime(int t){
 }
 ```
 
+### Is power of two?
+
+```c++
+bool isPowerOfTwo(int n) {
+    return (n > 0) && ((n & (n - 1)) == 0);
+}
+```
+
 ### Greatest Common Divisor (GCD)
 
 Time complexity: O(log(min(a,b)))
