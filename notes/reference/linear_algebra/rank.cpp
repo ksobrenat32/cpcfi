@@ -1,27 +1,37 @@
-const double EPS = 1E-9;
+#include <vector>
+#include <cmath>
+#include <algorithm>
 
-int compute_rank(vector<vector<double>> A) {
-    int n = A.size();
-    int m = A[0].size();
+// Computes the rank of a matrix using Gaussian elimination.
+// Time complexity: O(n*m*min(n,m)) for n x m matrix.
+// Space complexity: O(n) for bookkeeping, plus O(n*m) for matrix copy.
+const double EPS = 1e-9;
+
+int rank(std::vector<std::vector<double>> matrix) {
+    if (matrix.empty() || matrix[0].empty()) return 0;
+    int n = matrix.size();
+    int m = matrix[0].size();
 
     int rank = 0;
-    vector<bool> row_selected(n, false);
-    for (int i = 0; i < m; ++i) {
+    std::vector<bool> row_selected(n, false);
+    for (int i = 0; i < m; ++i) { // iterate over columns
         int j;
-        for (j = 0; j < n; ++j) {
-            if (!row_selected[j] && abs(A[j][i]) > EPS)
+        for (j = 0; j < n; ++j) { // find a pivot row
+            if (!row_selected[j] && std::abs(matrix[j][i]) > EPS)
                 break;
         }
 
-        if (j != n) {
-            ++rank;
+        if (j != n) { // pivot found in row j at column i
+            rank++;
             row_selected[j] = true;
-            for (int p = i + 1; p < m; ++p)
-                A[j][p] /= A[j][i];
+
+            // Use pivot at (j, i) to eliminate other rows
             for (int k = 0; k < n; ++k) {
-                if (k != j && abs(A[k][i]) > EPS) {
-                    for (int p = i + 1; p < m; ++p)
-                        A[k][p] -= A[j][p] * A[k][i];
+                if (k != j) {
+                    double factor = matrix[k][i] / matrix[j][i];
+                    for (int p = i; p < m; ++p) {
+                        matrix[k][p] -= matrix[j][p] * factor;
+                    }
                 }
             }
         }
