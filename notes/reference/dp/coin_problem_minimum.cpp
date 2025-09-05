@@ -1,20 +1,40 @@
-vector<ll> coins(n);
-for(int i=0; i<n; i++){
-    cin>>coins[i];
-}
+// Finds the minimum number of coins required to form a target sum.
+// Time Complexity: O(num_coins * target_sum)
+// Space Complexity: O(target_sum)
+#include <iostream>
+#include <vector>
+#include <algorithm>
 
-vector<ll> dp(x+1,INT_MAX);
-dp[0] = 0;
-for(int i=0; i<=x; i++){
-    for(int j=0; j<n; j++){
-        if(i-coins[j]>=0){
-            dp[i] = min(dp[i], dp[i-coins[j]]+1);
+void solve_min_coins() {
+    int num_coins, target_sum;
+    std::cin >> num_coins >> target_sum;
+    std::vector<int> coins(num_coins);
+    for (int i = 0; i < num_coins; ++i) {
+        std::cin >> coins[i];
+    }
+
+    // dp[i] stores the minimum number of coins to make sum i.
+    // Initialize with a value larger than any possible answer.
+    const int infinity = target_sum + 1;
+    std::vector<int> dp(target_sum + 1, infinity);
+
+    // Base case: 0 coins are needed to make a sum of 0.
+    dp[0] = 0;
+
+    for (int i = 1; i <= target_sum; ++i) {
+        for (int coin_value : coins) {
+            if (i - coin_value >= 0) {
+                // If the subproblem can be solved, update the current state.
+                if (dp[i - coin_value] != infinity) {
+                    dp[i] = std::min(dp[i], dp[i - coin_value] + 1);
+                }
+            }
         }
     }
-}
 
-if(dp[x] != INT_MAX){
-    cout<<dp[x]<<endl;
-}else{
-    cout<<"-1"<<endl;
+    if (dp[target_sum] == infinity) {
+        std::cout << -1 << std::endl;
+    } else {
+        std::cout << dp[target_sum] << std::endl;
+    }
 }
