@@ -1,116 +1,82 @@
-struct dsu_save {
-    int v, rnkv, u, rnku;
+// Solves offline dynamic connectivity problems using a segment tree and DSU with rollbacks.
+// This allows processing edge additions and removals over a period of time and querying
+// the number of connected components at each time step.
+//
+// The approach requires all queries to be known beforehand (offline).
+// 1. Edge Lifetimes: Each edge's presence in the graph is converted into one or more
+//    time intervals [start, end].
+// 2. Segment Tree: A segment tree is built over the total time span. An edge active
+//    during [start, end] is added to the segment tree nodes covering this interval.
+// 3. DFS Traversal: A DFS on the segment tree applies edge unions upon entering a node's
+//    time range and rolls them back upon exiting, using a DSU with rollback.
+//
+// This file requires the DSU_Rollback class from 'dsu_with_rollback.cpp'.
 
-    dsu_save() {}
-
-    dsu_save(int _v, int _rnkv, int _u, int _rnku)
-        : v(_v), rnkv(_rnkv), u(_u), rnku(_rnku) {}
+struct Edge {
+    int u, v;
 };
 
-struct dsu_with_rollbacks {
-    vector<int> p, rnk;
-    int comps;
-    stack<dsu_save> op;
+class DynamicConnectivity {
+private:
+    // The segment tree, storing edges active in each time-based node.
+    vector<vector<Edge>> segment_tree;
+    // DSU that supports undoing unite operations.
+    DSU_Rollback dsu;
+    // The total number of time steps to be queried.
+    int time_span;
+    // The number of nodes in the graph.
+    int num_nodes;
 
-    dsu_with_rollbacks() {}
-
-    dsu_with_rollbacks(int n) {
-        p.resize(n);
-        rnk.resize(n);
-        for (int i = 0; i < n; i++) {
-            p[i] = i;
-            rnk[i] = 0;
-        }
-        comps = n;
-    }
-
-    int find_set(int v) {
-        return (v == p[v]) ? v : find_set(p[v]);
-    }
-
-    bool unite(int v, int u) {
-        v = find_set(v);
-        u = find_set(u);
-        if (v == u)
-            return false;
-        comps--;
-        if (rnk[v] > rnk[u])
-            swap(v, u);
-        op.push(dsu_save(v, rnk[v], u, rnk[u]));
-        p[v] = u;
-        if (rnk[u] == rnk[v])
-            rnk[u]++;
-        return true;
-    }
-
-    void rollback() {
-        if (op.empty())
-            return;
-        dsu_save x = op.top();
-        op.pop();
-        comps++;
-        p[x.v] = x.v;
-        rnk[x.v] = x.rnkv;
-        p[x.u] = x.u;
-        rnk[x.u] = x.rnku;
-    }
-};
-
-struct query {
-    int v, u;
-    bool united;
-    query(int _v, int _u) : v(_v), u(_u) {
-    }
-};
-
-struct QueryTree {
-    vector<vector<query>> t;
-    dsu_with_rollbacks dsu;
-    int T;
-
-    QueryTree() {}
-
-    QueryTree(int _T, int n) : T(_T) {
-        dsu = dsu_with_rollbacks(n);
-        t.resize(4 * T + 4);
-    }
-
-    void add_to_tree(int v, int l, int r, int ul, int ur, query& q) {
-        if (ul > ur)
-            return;
-        if (l == ul && r == ur) {
-            t[v].push_back(q);
+    // Recursively adds an edge to the segment tree nodes covering its lifetime.
+    void add_edge_to_tree(const Edge& edge, int start, int end, int v_idx, int l, int r) {
+        if (start > end) return;
+        if (l == start && r == end) {
+            segment_tree[v_idx].push_back(edge);
             return;
         }
-        int mid = (l + r) / 2;
-        add_to_tree(2 * v, l, mid, ul, min(ur, mid), q);
-        add_to_tree(2 * v + 1, mid + 1, r, max(ul, mid + 1), ur, q);
+        int mid = l + (r - l) / 2;
+        add_edge_to_tree(edge, start, min(end, mid), 2 * v_idx, l, mid);
+        add_edge_to_tree(edge, max(start, mid + 1), end, 2 * v_idx + 1, mid + 1, r);
     }
 
-    void add_query(query q, int l, int r) {
-        add_to_tree(1, 0, T - 1, l, r, q);
+    // Performs a DFS on the segment tree to compute the answers.
+    void dfs(int v_idx, int l, int r, vector<int>& answers) {
+        // Apply the unions for all edges in the current time segment.
+        int checkpoint = dsu.snapshot();
+        for (const auto& edge : segment_tree[v_idx]) {
+            dsu.unite(edge.u, edge.v);
+        }
+
+        if (l == r) {
+            // We are at a leaf, representing a single point in time.
+            // Record the number of connected components.
+            answers[l] = dsu.components();
+        } else {
+            // Recurse to children.
+            int mid = l + (r - l) / 2;
+            dfs(2 * v_idx, l, mid, answers);
+            dfs(2 * v_idx + 1, mid + 1, r, answers);
+        }
+
+        // Backtrack: undo the unions applied at this node.
+        dsu.rollback(checkpoint);
     }
 
-    void dfs(int v, int l, int r, vector<int>& ans) {
-        for (query& q : t[v]) {
-            q.united = dsu.unite(q.v, q.u);
-        }
-        if (l == r)
-            ans[l] = dsu.comps;
-        else {
-            int mid = (l + r) / 2;
-            dfs(2 * v, l, mid, ans);
-            dfs(2 * v + 1, mid + 1, r, ans);
-        }
-        for (query q : t[v]) {
-            if (q.united)
-                dsu.rollback();
-        }
+public:
+    DynamicConnectivity(int n, int t) : num_nodes(n), time_span(t), dsu(n) {
+        segment_tree.resize(4 * t);
     }
 
+    // Adds an edge that is active during the time interval [start_time, end_time].
+    void add_edge(int u, int v, int start_time, int end_time) {
+        add_edge_to_tree({u, v}, start_time, end_time, 1, 0, time_span - 1);
+    }
+
+    // Solves the problem and returns a vector where ans[t] is the number of
+    // connected components at time t.
     vector<int> solve() {
-        vector<int> ans(T);
-        dfs(1, 0, T - 1, ans);
-        return ans;
+        vector<int> answers(time_span);
+        dfs(1, 0, time_span - 1, answers);
+        return answers;
     }
-}
+};

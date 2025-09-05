@@ -1,49 +1,45 @@
-// Shout-out to Usaco Guide for DSU implementation: https://usaco.guide/gold/dsu?lang=cpp
+// Implements a Disjoint Set Union (DSU) data structure with path compression and union by size.
+// Time Complexity: O(α(n)) for find, unite, connected and size queries, where α is the inverse Ackermann function.
+// Space Complexity: O(n)
+// Based on: https://usaco.guide/gold/dsu?lang=cpp
 
-class DisjointSets{
+class DSU{
     private:
-        vector<int> parents;
-        vector<int> sizes;
-        int components;
+        vector<int> parent;
+        vector<int> component_size;
+        int num_components;
     public:
-        DisjointSets(int size) : parents(size), sizes(size,1), components(size){
-            for(int i=0; i<size; i++){parents[i] = i;}
+        DSU(int n) : parent(n), component_size(n,1), num_components(n){
+            for(int i=0; i<n; i++){parent[i] = i;}
         }
 
-        int find(int x) {return parents[x] == x ? x : (parents[x] = find(parents[x]));}
+        int find(int i) {return parent[i] == i ? i : (parent[i] = find(parent[i]));}
 
-        bool unite(int x, int y){
-            int x_root = find(x);
-            int y_root = find(y);
+        bool unite(int i, int j){
+            int root_i = find(i);
+            int root_j = find(j);
 
-            if(x_root == y_root) {return false;}
+            if(root_i == root_j) {return false;}
 
-            if(sizes[x_root] < sizes[y_root]) {swap(x_root,y_root);}
-            sizes[x_root] += sizes[y_root];
-            parents[y_root] = x_root;
-            components--;
+            if(component_size[root_i] < component_size[root_j]) {swap(root_i,root_j);}
+            component_size[root_i] += component_size[root_j];
+            parent[root_j] = root_i;
+            num_components--;
             return true;
         }
 
-        vector<int> getAllComponentSizes(){
-            map<int, int> component_sizes;
-            for (int i = 0; i < parents.size(); ++i){
-                int root = find(i);
-                if (component_sizes.find(root) == component_sizes.end()){
-                    component_sizes[root] = sizes[root];
+        vector<int> get_all_component_sizes(){
+            vector<int> sizes;
+            for (int i = 0; i < parent.size(); ++i){
+                if (parent[i] == i){
+                    sizes.push_back(component_size[i]);
                 }
             }
-
-            vector<int> result;
-            for (auto& [root, size] : component_sizes) {
-                result.push_back(size);
-            }
-
-            return result;
+            return sizes;
         }
 
 
-        bool connected(int x, int y) { return find(x) == find(y);}
-        int getSize(int x) {return sizes[find(x)];}
-        int getComponents() const {return components;}
+        bool connected(int i, int j) { return find(i) == find(j);}
+        int size(int i) {return component_size[find(i)];}
+        int components() const {return num_components;}
 };
