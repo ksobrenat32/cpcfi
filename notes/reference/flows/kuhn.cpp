@@ -1,31 +1,53 @@
-int n, k;
-vector<vector<int>> g;
-vector<int> mt;
-vector<bool> used;
+// Finds the maximum cardinality matching in a bipartite graph using Kuhn's algorithm.
+// This is a simple but effective algorithm. For better performance on large or dense graphs,
+// a max-flow algorithm like Dinic's on a constructed flow network is faster (O(E * sqrt(V))).
+// Time Complexity: O(V * E) where V is the number of vertices in the left partition.
+// Space Complexity: O(V + E)
 
-bool try_kuhn(int v) {
-    if (used[v])
-        return false;
-    used[v] = true;
-    for (int to : g[v]) {
-        if (mt[to] == -1 || try_kuhn(mt[to])) {
-            mt[to] = v;
-            return true;
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Kuhn {
+    int n_left, n_right;
+    vector<vector<int>> adj;
+    vector<int> match_R;
+    vector<bool> visited;
+
+    Kuhn(int nl, int nr) : n_left(nl), n_right(nr) {
+        adj.resize(n_left);
+    }
+
+    void add_edge(int u_left, int v_right) {
+        adj[u_left].push_back(v_right);
+    }
+
+    bool dfs_match(int u) {
+        if (visited[u]) {
+            return false;
         }
-    }
-    return false;
-}
-
-int main() {
-    //... reading the graph ...
-
-    mt.assign(k, -1);
-    for (int v = 0; v < n; ++v) {
-        used.assign(n, false);
-        try_kuhn(v);
+        visited[u] = true;
+        for (int v : adj[u]) {
+            if (match_R[v] < 0 || dfs_match(match_R[v])) {
+                match_R[v] = u;
+                return true;
+            }
+        }
+        return false;
     }
 
-    for (int i = 0; i < k; ++i)
-        if (mt[i] != -1)
-            printf("%d %d\n", mt[i] + 1, i + 1);
-}
+    // Returns the size of the maximum matching
+    int solve() {
+        match_R.assign(n_right, -1);
+        int matching_size = 0;
+        for (int u = 0; u < n_left; ++u) {
+            visited.assign(n_left, false);
+            if (dfs_match(u)) {
+                matching_size++;
+            }
+        }
+        return matching_size;
+    }
+};

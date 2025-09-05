@@ -1,81 +1,84 @@
+// Finds the maximum flow from a source to a sink in a flow network using Dinic's algorithm.
+// Time Complexity: O(V^2 * E) in general, but faster on special graphs.
+// Space Complexity: O(V + E)
+
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+
+using namespace std;
+
 struct FlowEdge {
-    int v, u;
-    long long cap, flow = 0;
-    FlowEdge(int v, int u, long long cap) : v(v), u(u), cap(cap) {}
+    int from, to;
+    long long capacity, flow = 0;
+    FlowEdge(int from, int to, long long capacity) : from(from), to(to), capacity(capacity) {}
 };
 
 struct Dinic {
     const long long flow_inf = 1e18;
     vector<FlowEdge> edges;
     vector<vector<int>> adj;
-    int n, m = 0;
-    int s, t;
+    int num_nodes, num_edges = 0;
+    int source, sink;
     vector<int> level, ptr;
     queue<int> q;
 
-    Dinic(int n, int s, int t) : n(n), s(s), t(t) {
-        adj.resize(n);
-        level.resize(n);
-        ptr.resize(n);
+    Dinic(int num_nodes, int source, int sink) : num_nodes(num_nodes), source(source), sink(sink) {
+        adj.resize(num_nodes);
+        level.resize(num_nodes);
+        ptr.resize(num_nodes);
     }
 
-    void add_edge(int v, int u, long long cap) {
-        edges.emplace_back(v, u, cap);
-        edges.emplace_back(u, v, 0);
-        adj[v].push_back(m);
-        adj[u].push_back(m + 1);
-        m += 2;
+    void add_edge(int from, int to, long long capacity) {
+        edges.emplace_back(from, to, capacity);
+        edges.emplace_back(to, from, 0); // Residual edge
+        adj[from].push_back(num_edges);
+        adj[to].push_back(num_edges + 1);
+        num_edges += 2;
     }
 
     bool bfs() {
+        level.assign(num_nodes, -1);
+        level[source] = 0;
+        q.push(source);
         while (!q.empty()) {
-            int v = q.front();
+            int u = q.front();
             q.pop();
-            for (int id : adj[v]) {
-                if (edges[id].cap == edges[id].flow)
-                    continue;
-                if (level[edges[id].u] != -1)
-                    continue;
-                level[edges[id].u] = level[v] + 1;
-                q.push(edges[id].u);
+            for (int id : adj[u]) {
+                if (edges[id].capacity - edges[id].flow == 0) continue;
+                if (level[edges[id].to] != -1) continue;
+                level[edges[id].to] = level[u] + 1;
+                q.push(edges[id].to);
             }
         }
-        return level[t] != -1;
+        return level[sink] != -1;
     }
 
-    long long dfs(int v, long long pushed) {
-        if (pushed == 0)
-            return 0;
-        if (v == t)
-            return pushed;
-        for (int& cid = ptr[v]; cid < (int)adj[v].size(); cid++) {
-            int id = adj[v][cid];
-            int u = edges[id].u;
-            if (level[v] + 1 != level[u])
-                continue;
-            long long tr = dfs(u, min(pushed, edges[id].cap - edges[id].flow));
-            if (tr == 0)
-                continue;
-            edges[id].flow += tr;
-            edges[id ^ 1].flow -= tr;
-            return tr;
+    long long dfs(int u, long long pushed) {
+        if (pushed == 0) return 0;
+        if (u == sink) return pushed;
+        for (int& edge_idx = ptr[u]; edge_idx < (int)adj[u].size(); edge_idx++) {
+            int id = adj[u][edge_idx];
+            int v = edges[id].to;
+            if (level[u] + 1 != level[v] || edges[id].capacity - edges[id].flow == 0) continue;
+            long long pushed_flow = dfs(v, min(pushed, edges[id].capacity - edges[id].flow));
+            if (pushed_flow == 0) continue;
+            edges[id].flow += pushed_flow;
+            edges[id ^ 1].flow -= pushed_flow;
+            return pushed_flow;
         }
         return 0;
     }
 
-    long long flow() {
-        long long f = 0;
-        while (true) {
-            fill(level.begin(), level.end(), -1);
-            level[s] = 0;
-            q.push(s);
-            if (!bfs())
-                break;
-            fill(ptr.begin(), ptr.end(), 0);
-            while (long long pushed = dfs(s, flow_inf)) {
-                f += pushed;
+    long long max_flow() {
+        long long total_flow = 0;
+        while (bfs()) {
+            ptr.assign(num_nodes, 0);
+            while (long long pushed = dfs(source, flow_inf)) {
+                total_flow += pushed;
             }
         }
-        return f;
+        return total_flow;
     }
 };
