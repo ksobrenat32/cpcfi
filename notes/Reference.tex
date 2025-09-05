@@ -8,11 +8,12 @@
 \usepackage{titletoc}
 \usepackage{hyperref}
 \usepackage{graphicx}
-\usepackage{tabularx}     % For smart-width tables
-\usepackage{ragged2e}     % For better text justification
-\usepackage{xltabular}  % For multi-page tables
-\usepackage{multirow}   % For multi-row cells
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{xltabular}
+\usepackage{multirow}
 \usepackage{amsmath}
+
 % Configure column separation line
 \setlength{\columnsep}{1cm}
 \setlength{\columnseprule}{0.4pt}
@@ -43,14 +44,14 @@
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
-\renewcommand{\sectionmark}[1]{\markboth{#1}{}} % Remove section numbers from header
-\fancyhead[L]{\authorname} % Left header
-\fancyhead[C]{\leftmark} % Center header
-\fancyhead[R]{Page \thepage\ of \pageref{LastPage}} % Right header
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+\fancyhead[L]{\authorname}
+\fancyhead[C]{\leftmark}
+\fancyhead[R]{Page \thepage\ of \pageref{LastPage}}
 \fancyheadoffset{0pt}
 
 % Author name definition
-\newcommand{\authorname}{\textbf{Falsificamos el INE de Wicho}} % Set your name here
+\newcommand{\authorname}{\textbf{Enrique Calderón, Luis Salazar, Gustavo Valenzuela}}
 
 % Table of Contents formatting
 \contentsmargin{0pt}
@@ -62,9 +63,9 @@
     \begin{titlepage}
         \centering
         \vspace*{2cm}
-        {\Huge\bfseries ICPC MX 2025 Reference (Date 3 version)\par}
+        {\Huge\bfseries ICPC MX 2025 Reference\par}
         \vspace{1cm}
-        {\Large \authorname \par} % Use defined author name
+        {\Large \authorname \par}
         \vspace{2cm}
         {\large Last Updated: \today\par}
         \vfill
