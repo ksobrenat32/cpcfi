@@ -1,88 +1,58 @@
-const ll mod=1e9+7;
-const ll limit=4e9;
-//ascii https://elcodigoascii.com.ar/
+// Description: Computes the convex hull of a set of 2D points using Andrew's monotone chain algorithm.
+// Time Complexity: O(N log N), dominated by sorting the points.
+// Space Complexity: O(N), for storing the hull points.
 
-int orientation(point a,point b,point c){
-    ll ori=(b.y-c.y)*(b.x-a.x)-(b.y-a.y)*(b.x-c.x);
-    if(ori==0) return 0;
-    if(ori>0) return 1;
-    return 2;
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+struct Point {
+    long long x, y;
+
+    // For sorting and removing duplicates
+    bool operator<(const Point& other) const {
+        if (x != other.x) return x < other.x;
+        return y < other.y;
+    }
+};
+
+// Computes the cross product (a, b, c)
+// Returns > 0 for a counter-clockwise turn, < 0 for a clockwise turn, and 0 for collinear points.
+long long cross_product(Point a, Point b, Point c) {
+    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 }
 
-void getLastTwo(point &a,point &b,stack<point> &s)
-{
-    a=s.top();
-    s.pop();
-    b=s.top();
-    s.pop();
-}
-
-void show(point a){
-    cout<<a.x<<" "<<a.y<<endl;
-}
-
-//Graham scan
-
-void solve(){
-    int n; cin>>n;
-    vector<point> puntos(n);
-    FO(i,n){
-        ll a,b; cin>>a>>b;
-        puntos[i]=make_pair(a,b);
-    }
-    sort(all(puntos));
-    //Lower Part
-    stack<point> lower;
-    FO(i,n)
-    {
-        if(lower.size()<2){
-            lower.push(puntos[i]);
-            continue;
-        }
-        point a,b;
-        getLastTwo(a,b,lower);
-        if(orientation(a,b,puntos[i])<2)
-        {
-            lower.push(b);
-            lower.push(a);
-            lower.push(puntos[i]);
-        }
-        else{
-            lower.push(b);
-            i--;
-        }
-    }
-    stack<point> upper;
-    for(int i=n-1;i>=0;i--)
-    {
-        if(upper.size()<2){
-            upper.push(puntos[i]);
-            continue;
-        }
-        point a,b;
-        getLastTwo(a,b,upper);
-        if(orientation(a,b,puntos[i])<2)
-        {
-            upper.push(b);
-            upper.push(a);
-            upper.push(puntos[i]);
-        }
-        else{
-            upper.push(b);
-            i++;
-        }
+// Returns the convex hull of a set of points.
+std::vector<Point> convex_hull(std::vector<Point>& points) {
+    int n = points.size();
+    if (n <= 2) {
+        return points;
     }
 
-    set<point> res;
+    // Sort points lexicographically
+    std::sort(points.begin(), points.end());
 
-    while(!lower.empty()){
-        res.insert(lower.top());
-        lower.pop();
+    std::vector<Point> lower_hull;
+    for (int i = 0; i < n; i++) {
+        while (lower_hull.size() >= 2 && cross_product(lower_hull[lower_hull.size() - 2], lower_hull.back(), points[i]) <= 0) {
+            lower_hull.pop_back();
+        }
+        lower_hull.push_back(points[i]);
     }
-    while(!upper.empty()){
-        res.insert(upper.top());
-        upper.pop();
+
+    std::vector<Point> upper_hull;
+    for (int i = n - 1; i >= 0; i--) {
+        while (upper_hull.size() >= 2 && cross_product(upper_hull[upper_hull.size() - 2], upper_hull.back(), points[i]) <= 0) {
+            upper_hull.pop_back();
+        }
+        upper_hull.push_back(points[i]);
     }
-    cout<<res.size()<<endl;
-    for(auto c:res) show(c);
+
+    // Combine the hulls
+    std::vector<Point> hull = lower_hull;
+    for (size_t i = 1; i < upper_hull.size() - 1; i++) {
+        hull.push_back(upper_hull[i]);
+    }
+
+    return hull;
 }

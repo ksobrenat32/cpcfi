@@ -1,90 +1,62 @@
-struct point{
-    ll x,y;
-    void show(){
-        cout<<x<<" "<<y<<endl;
-    }
+// Description: Determines if a point is inside, outside, or on the boundary of a simple polygon using the Winding Number algorithm.
+// Time Complexity: O(N) for a polygon with N vertices.
+// Space Complexity: O(1).
+
+#include <vector>
+#include <algorithm>
+
+struct Point {
+    long long x, y;
 };
 
-int sign(ll a){
-    if(a<0) return -1;
-    if(a==0) return 0;
-    if(a>0) return 1;
+// Enum to represent the location of the point.
+enum PointLocation { INSIDE, OUTSIDE, BOUNDARY };
+
+// Computes the orientation of the ordered triplet (p, q, r).
+// Returns > 0 for counter-clockwise, < 0 for clockwise, 0 for collinear.
+long long orientation(Point p, Point q, Point r) {
+    long long val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+    if (val == 0) return 0;
+    return (val > 0) ? 1 : -1;
 }
 
-int signCP(point p,point p1,point p2)
-{
-    return sign(1LL*((p1.x-p.x)*(p2.y-p.y)-(p1.y-p.y)*(p2.x-p.x)));
+// Checks if point q lies on the line segment pr.
+bool on_segment(Point p, Point q, Point r) {
+    return (orientation(p, q, r) == 0 &&
+            q.x >= std::min(p.x, r.x) && q.x <= std::max(p.x, r.x) &&
+            q.y >= std::min(p.y, r.y) && q.y <= std::max(p.y, r.y));
 }
 
-bool intersect(point n, point m,point a,point b)
-{
-    if(signCP(n,a,b)*signCP(m,a,b)>0) return false;
-    if(signCP(a,n,m)*signCP(b,n,m)>0) return false;
-    return true;
-}
+// Determines the location of a query point relative to a polygon.
+PointLocation point_in_polygon(const std::vector<Point>& polygon, Point query_point) {
+    int n = polygon.size();
+    if (n < 3) return OUTSIDE; // A polygon must have at least 3 vertices.
 
-bool inside(point a,point b,point c){
-    return a.x>=min(b.x,c.x) && a.x<=max(b.x,c.x) && a.y>=min(b.y,c.y)
-    && a.y<=max(b.y,c.y);
-}
+    int winding_number = 0;
 
-inline void solve()
-{
-    int n,m; cin>>n>>m;
-    vector<point> vertices(n);
-    FO(i,n)
-    {
-        cin>>vertices[i].x>>vertices[i].y;
-    }
-    point query,par,init,first,second;
-    int counter;
-    int resta=0;
-    FO(i,m)
-    {
-        resta=0;
-        counter=0;
-        cin>>query.x>>query.y;
-        par.x=query.x;
-        par.y=-MAX-1;
-        init.x=vertices[0].x;
-        init.y=vertices[0].y;
-        first.x=init.x;
-        first.y=init.y;
-        bool ver=false;
-        for(int j=1;j<=n;j++)
-        {
-            second.x=vertices[j%n].x;
-            second.y=vertices[j%n].y;
-            point AB,u;
-            AB.x=second.x-first.x;
-            AB.y=second.y-first.y;
-            u.x=second.x-query.x;
-            u.y=second.y-query.y;
-            if((AB.x*u.y-AB.y*u.x)==0 && inside(query,first,second)){
-                cout<<"BOUNDARY"<<endl;
-                ver=true;
-                break;
-            }
-            if(intersect(query,par,first,second) && first.x<=query.x && query.x<second.x)
-            {
-                counter++;
-            }
-            if(intersect(query,par,first,second) && second.x<=query.x && query.x<first.x){
-                counter++;
-            }
-            first.x=second.x;
-            first.y=second.y;
+    for (int i = 0; i < n; ++i) {
+        Point p1 = polygon[i];
+        Point p2 = polygon[(i + 1) % n];
+
+        // First, check if the point is on the boundary.
+        if (on_segment(p1, query_point, p2)) {
+            return BOUNDARY;
         }
-        point AB,u;
-        AB.x=init.x-first.x;
-        AB.y=init.y-first.y;
-        u.x=init.x-query.x;
-        u.y=init.y-query.y;
-        if(!ver){
-            //if(intersect(query,par,first,init)) counter++;
-            if((counter)&1) cout<<"INSIDE";
-            else cout<<"OUTSIDE";
-            cout<<endl;
+
+        // Check for crossings of the horizontal ray from the query point.
+        if (p1.y <= query_point.y) {
+            // An upward crossing.
+            if (p2.y > query_point.y && orientation(p1, p2, query_point) > 0) {
+                winding_number++;
+            }
+        } else { // p1.y > query_point.y
+            // A downward crossing.
+            if (p2.y <= query_point.y && orientation(p1, p2, query_point) < 0) {
+                winding_number--;
+            }
         }
     }
+
+    // A non-zero winding number means the point is inside.
+    return (winding_number != 0) ? INSIDE : OUTSIDE;
 }
