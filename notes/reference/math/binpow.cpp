@@ -1,10 +1,13 @@
-long long binpow(long long a, long long b) {
+// Computes base^exp using binary exponentiation (exponentiation by squaring).
+// Time complexity: O(log exp)
+// Space complexity: O(1)
+
+long long power(long long base, long long exp) {
     long long res = 1;
-    while (b > 0) {
-        if (b & 1)
-            res = res * a;
-        a = a * a;
-        b >>= 1;
+    while (exp > 0) {
+        if (exp % 2 == 1) res *= base;
+        base *= base;
+        exp /= 2;
     }
     return res;
 }
