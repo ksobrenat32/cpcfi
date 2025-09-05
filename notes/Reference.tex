@@ -89,6 +89,446 @@
 % Main Content
 \begin{multicols*}{2}
 
+\section{Data Types}
+\begin{tabularx}{\linewidth}{|l|X|l|}
+    \hline
+    \textbf{Type} & \textbf{Range} & \textbf{Bytes} \\
+    \hline
+    bool & true or false & 1 bit \\
+    \hline
+    signed char & -128 to 127 & 1 \\
+    \hline
+    unsigned char & 0 to 255 & 1 \\
+    \hline
+    short int & -32,768 to 32,767 & 2 \\
+    \hline
+    unsigned short int & 0 to 65,535 & 2 \\
+    \hline
+    unsigned int & 0 to 4,294,967,295 & 4 \\
+    \hline
+    int & -2,147,483,648 to 2,147,483,647 & 4 \\
+    \hline
+    long int & -2,147,483,648 to 2,147,483,647 & 4 \\
+    \hline
+    unsigned long int & 0 to 4,294,967,295 & 4 \\
+    \hline
+    long long int & -(2\textasciicircum 63) to (2\textasciicircum 63)-1 & 8 \\
+    \hline
+    unsigned long long int & 0 to 18,446,744,073,709,551,615 & 8 \\
+    \hline
+    float & -3.4E38 to 3.4E38 & 4 \\
+    \hline
+    double & -1.7E308 to 1.7E308 & 8 \\
+    \hline
+    long double & -1.1E4932 to 1.1E4932 & 12 \\
+    \hline
+\end{tabularx}
+
+\section{I/O}
+
+\subsection{Read a full line}
+\begin{lstlisting}[style=compactcpp]
+string s;
+getline(cin, s);
+\end{lstlisting}
+
+\subsection{Read while input is provided}
+\begin{lstlisting}[style=compactcpp]
+string s;
+while(getline(cin, s)){
+    // ...
+}
+\end{lstlisting}
+
+\subsection{Print a double with all the precision}
+\begin{lstlisting}[style=compactcpp]
+// n = number, x = number of decimals
+cout.setf(ios::fixed);
+cout << setprecision(x) << n << endl;
+\end{lstlisting}
+
+\subsection{Print n leading zeros}
+\begin{lstlisting}[style=compactcpp]
+cout << setw(n) << setfill('0') << x << endl;
+\end{lstlisting}
+
+\section{Numbers}
+
+\subsection{Rounding}
+\begin{lstlisting}[style=compactcpp]
+// Round down
+int x = floor(float / float);
+// Round up
+int x = ceil(float / float);
+\end{lstlisting}
+
+\subsection{Absolute}
+\begin{lstlisting}[style=compactcpp]
+float x = abs(a - b);
+\end{lstlisting}
+
+\subsection{Is prime?}
+Time complexity: O(sqrt(n))
+\begin{lstlisting}[style=compactcpp]
+bool prime(int t){
+    if(t%2 == 0){
+        return false;
+    } else {
+        for(int i=3; i*i <=t; i+=2){
+            if((t%i)==0){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+\end{lstlisting}
+
+\subsection{Is power of two?}
+\begin{lstlisting}[style=compactcpp]
+bool isPowerOfTwo(int n) {
+    return (n > 0) && ((n & (n - 1)) == 0);
+}
+\end{lstlisting}
+
+\subsection{Gauss sum}
+Sum of the first n numbers. Time complexity: O(1)
+\begin{lstlisting}[style=compactcpp]
+long long sum = n * (n+1) / 2;
+\end{lstlisting}
+
+\subsection{Combinations}
+Number of ways to make a square of size k x k in a grid of size n x n
+\begin{lstlisting}[style=compactcpp]
+ll sqr_comb(ll n){
+    ll r=0;
+    for(ll i=1; i<=n; i++){
+        r += (n-i+1)*(n-i+1);
+    }
+    return r;
+}
+\end{lstlisting}
+
+\subsection{Bitwise}
+\subsubsection{Operator Reference}
+\begin{tabularx}{\linewidth}{|l|l|l|}
+    \hline
+    \textbf{OPERATOR} & \textbf{WHAT} & \textbf{\# ELEMENTS} \\
+    \hline
+    AND `&&` & Both true & 2 \\
+    \hline
+    OR `||` & One or both true & 2 \\
+    \hline
+    XOR `^`  & Only one true & 2 \\
+    \hline
+    NOT `~`  & Contrary & 1 \\
+    \hline
+\end{tabularx}
+
+\subsubsection{Get LSB (Least Significant Bit)}
+\begin{lstlisting}[style=compactcpp]
+int getLSB(int i) {
+    return i & -i;
+}
+\end{lstlisting}
+
+\section{Search algorithms}
+
+\subsection{Custom Binary search}
+Time complexity: O(log(n))
+\begin{lstlisting}[style=compactcpp]
+int bs(int N, int x, vector<int> v){
+    int R = N-1;
+    int L = 0;
+    int m;
+
+    while(L <= R){
+        m = L + (R - L) / 2;
+
+        if(v[m] == x){
+            // Found
+            return m;
+        }
+
+        if(v[m] < x ){
+            L = m + 1 ;
+        } else {
+            R = m - 1;
+        }
+    }
+
+    // Not found
+    return -1;
+}
+\end{lstlisting}
+
+\subsection{Counting with lower\_bound and upper\_bound}
+You can efficiently count the number of elements equal to \texttt{x} in a sorted range using \texttt{lower\_bound} and \texttt{upper\_bound}.
+
+\texttt{lower\_bound} returns an iterator to the first element not less than \texttt{x}.
+\texttt{upper\_bound} returns an iterator to the first element greater than \texttt{x}.
+
+The difference between these two iterators gives the number of elements equal to \texttt{x}.
+\begin{lstlisting}[style=compactcpp]
+// v is a sorted vector
+auto lb = lower_bound(v.begin(), v.end(), x);
+auto ub = upper_bound(v.begin(), v.end(), x);
+int count = ub - lb;
+\end{lstlisting}
+
+\section{Graphs algorithms}
+
+\subsection{Breadth First Search (BFS)}
+Use this to find the shortest path to a node.
+\begin{lstlisting}[style=compactcpp]
+// s = start node, adj = adjacency list, visited = vector of visited nodes, n = number of nodes
+void bfs(int s, vector<vector<int>> &adj, vector<bool> &visited, int n){
+    queue<int> q;
+    q.push(s);
+    visited[q.front()]=true;
+
+    while(! q.empty()){
+        cout << q.front() << endl;
+        for(size_t i = 0; i < adj[q.front()].size(); i++){
+            if(!visited[adj[q.front()][i]]){
+                q.push(adj[q.front()][i]);
+                visited[adj[q.front()][i]]=true;
+            }
+        }
+        q.pop();
+    }
+}
+\end{lstlisting}
+
+\subsection{DFS}
+Use this to find all the nodes connected to a node.
+\begin{lstlisting}[style=compactcpp]
+// s = start node, adj = adjacency list, visited = vector of visited nodes
+void dfs(int s, vector<vector<int>> &adj, vector<bool> &visited){
+    if(visited[s]){
+        return;
+    }
+    cout << s << endl;
+    visited[s]=true;
+    for(size_t i = 0; i < adj[s].size(); i++){
+        dfs(adj[s][i], adj, visited);
+    }
+}
+\end{lstlisting}
+
+\subsection{Connections}
+Print connected nodes
+\begin{lstlisting}[style=compactcpp]
+// s = start node, adj = adjacency list, visited = vector of visited nodes
+void conex(int s, vector<vector<int>> &adj, vector<bool> &visited){
+    for(size_t i = 0; i < adj.size(); i++){
+        if(!visited[i]){
+            bfs(i, adj, visited, adj.size());
+        }
+        cout << endl;
+    }
+}
+\end{lstlisting}
+
+\section{String manipulation}
+
+\subsection{Convert char to int}
+\begin{lstlisting}[style=compactcpp]
+int i = c - '0';
+\end{lstlisting}
+
+\subsection{Convert number to binary string}
+\begin{lstlisting}[style=compactcpp]
+string to_binary(int n) {
+    string result;
+    while (n > 0) {
+        result = char((n % 2) + '0') + result;
+        n /= 2;
+    }
+    return result.empty() ? "0" : result;
+}
+\end{lstlisting}
+
+\subsection{To upper and to lower case}
+\begin{lstlisting}[style=compactcpp]
+transform(s.begin(), s.end(), s.begin(), ::toupper);
+transform(s.begin(), s.end(), s.begin(), ::tolower);
+\end{lstlisting}
+
+\subsection{Substrings with steroids}
+This is a way to extract the values from a string that has a specific format. For example, if the string is "1:2,3" and we want to extract the values 1, 2 and 3.
+\begin{lstlisting}[style=compactcpp]
+int a;
+int b;
+int c;
+char comma;
+char colon;
+
+// Createa a stringstream object
+stringstream ss(fullString);
+// Extract the strings
+ss >> a >> colon >> b >> comma >> c;
+\end{lstlisting}
+
+\subsection{Stringstream to string}
+Some times its easier to use a stringstream to convert between strings and other types.
+\begin{lstlisting}[style=compactcpp]
+stringstream ss;
+ss << value1 << value2;
+return ss.str();
+\end{lstlisting}
+
+\subsection{Create a string that repeats a character}
+\begin{lstlisting}[style=compactcpp]
+char c = 'a';
+int n = 5;
+string result(n, c);
+\end{lstlisting}
+
+\subsection{ASCII table}
+\includegraphics[width=0.8\linewidth]{img/ASCII-Table.png}
+
+\section{General algorithms}
+\subsection{Sparse Table}
+\subsubsection{Prerequisites}
+\begin{itemize}
+    \item Immutable array
+    \item Associative function for O(n log n) range query
+    \item Overlap friendly function O(1) range query (max, min, gcd, lcm)
+\end{itemize}
+
+\subsubsection{Implementation}
+\begin{lstlisting}[style=compactcpp]
+class SparseTable {
+    vector<vector<int>> st;
+    vector<int> logs;
+
+public:
+    SparseTable(vector<int>& arr) {
+        int n = arr.size();
+        int maxLog = 0;
+        while ((1 << maxLog) <= n) maxLog++;
+
+        st.assign(maxLog, vector<int>(n));
+        logs.assign(n + 1, 0);
+
+        // Precompute logs
+        for (int i = 2; i <= n; i++) {
+            logs[i] = logs[i / 2] + 1;
+        }
+
+        // Fill first row
+        for (int i = 0; i < n; i++) {
+            st[0][i] = arr[i];
+        }
+
+        // Fill table
+        for (int j = 1; j < maxLog; j++) {
+            for (int i = 0; i + (1 << j) <= n; i++) {
+                st[j][i] = max(st[j-1][i], st[j-1][i + (1 << (j-1))]);
+            }
+        }
+    }
+
+    // O(1) range maximum query
+    int query(int l, int r) {
+        int j = logs[r - l + 1];
+        return max(st[j][l], st[j][r - (1 << j) + 1]);
+    }
+};
+\end{lstlisting}
+
+\section{Geometry}
+
+\subsection{Constants}
+\subsubsection{PI}
+\begin{lstlisting}[style=compactcpp]
+#define PI acos(-1.0)
+\end{lstlisting}
+
+\subsubsection{Epsilon}
+\begin{lstlisting}[style=compactcpp]
+#define EPS 1e-9
+\end{lstlisting}
+
+\subsection{Conversions}
+\subsubsection{Degree/Radian conversions}
+\begin{lstlisting}[style=compactcpp]
+double DEG_to_RAD(double d) { return d * PI / 180.0; }
+double RAD_to_DEG(double r) { return r * 180.0 / PI; }
+\end{lstlisting}
+
+\subsection{Structures}
+\subsubsection{Point}
+\begin{lstlisting}[style=compactcpp]
+struct point_i {
+    int x, y;
+    point_i() { x = y = 0; }
+    point_i(int _x, int _y) : x(_x), y(_y) {}
+};
+
+struct point {
+    double x, y;
+    point() { x = y = 0.0; }
+    point(double _x, double _y) : x(_x), y(_y) {}
+};
+\end{lstlisting}
+
+\subsubsection{Line}
+\begin{lstlisting}[style=compactcpp]
+struct line {
+    double a, b, c;
+    // ax + by + c = 0
+};
+\end{lstlisting}
+
+\subsection{Circle}
+\subsubsection{Check if point is inside circle}
+\begin{lstlisting}[style=compactcpp]
+int insideCircle(point_i p, point_i c, int r) {
+    int dx = p.x - c.x, dy = p.y - c.y;
+    int Euc = dx * dx + dy * dy, rSq = r * r;
+    return Euc < rSq ? 0 : Euc == rSq ? 1 : 2;
+    // 0 = inside, 1 = on border, 2 = outside
+}
+\end{lstlisting}
+
+\subsubsection{Arc Length}
+To calculate the arc use \texttt{L = r * theta} where theta is in radians.
+
+\subsection{Triangle}
+\subsubsection{Area using Heron's formula}
+\begin{lstlisting}[style=compactcpp]
+double triangleArea(double a, double b, double c) {
+    double s = (a + b + c) / 2.0; // semiperimeter
+    return sqrt(s * (s - a) * (s - b) * (s - c));
+}
+\end{lstlisting}
+
+\subsubsection{Distance between points}
+\begin{lstlisting}[style=compactcpp]
+double dist(point p1, point p2) {
+    return sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
+}
+\end{lstlisting}
+
+\subsubsection{Perimeter}
+\begin{lstlisting}[style=compactcpp]
+double perimeter(double a, double b, double c) {
+    return a + b + c;
+}
+
+double perimeter(point a, point b, point c) {
+    return dist(a, b) + dist(b, c) + dist(c, a);
+}
+\end{lstlisting}
+
+\subsection{Save int as real number}
+For more precision you can use scanf:
+\begin{lstlisting}[style=compactcpp]
+int a, b;
+scanf("%d.%d", &a, &b);
+\end{lstlisting}
 
 \section{C++ Functions}
 \subsection{Common STL Algorithms}
