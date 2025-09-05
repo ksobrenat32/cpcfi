@@ -17,3 +17,6 @@ char colon;
 stringstream ss(fullString);
 // Extract the strings
 ss >> a >> colon >> b >> comma >> c;
+
+// String constructor with a char
+string result(n, c);
