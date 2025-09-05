@@ -124,148 +124,6 @@
     \hline
 \end{tabularx}
 
-\section{General algorithms}
-\subsection{Sparse Table}
-\subsubsection{Prerequisites}
-\begin{itemize}
-    \item Immutable array
-    \item Associative function for O(n log n) range query
-    \item Overlap friendly function O(1) range query (max, min, gcd, lcm)
-\end{itemize}
-
-\subsubsection{Implementation}
-\begin{lstlisting}[style=compactcpp]
-class SparseTable {
-    vector<vector<int>> st;
-    vector<int> logs;
-
-public:
-    SparseTable(vector<int>& arr) {
-        int n = arr.size();
-        int maxLog = 0;
-        while ((1 << maxLog) <= n) maxLog++;
-
-        st.assign(maxLog, vector<int>(n));
-        logs.assign(n + 1, 0);
-
-        // Precompute logs
-        for (int i = 2; i <= n; i++) {
-            logs[i] = logs[i / 2] + 1;
-        }
-
-        // Fill first row
-        for (int i = 0; i < n; i++) {
-            st[0][i] = arr[i];
-        }
-
-        // Fill table
-        for (int j = 1; j < maxLog; j++) {
-            for (int i = 0; i + (1 << j) <= n; i++) {
-                st[j][i] = max(st[j-1][i], st[j-1][i + (1 << (j-1))]);
-            }
-        }
-    }
-
-    // O(1) range maximum query
-    int query(int l, int r) {
-        int j = logs[r - l + 1];
-        return max(st[j][l], st[j][r - (1 << j) + 1]);
-    }
-};
-\end{lstlisting}
-
-\section{Geometry}
-
-\subsection{Constants}
-\subsubsection{PI}
-\begin{lstlisting}[style=compactcpp]
-#define PI acos(-1.0)
-\end{lstlisting}
-
-\subsubsection{Epsilon}
-\begin{lstlisting}[style=compactcpp]
-#define EPS 1e-9
-\end{lstlisting}
-
-\subsection{Conversions}
-\subsubsection{Degree/Radian conversions}
-\begin{lstlisting}[style=compactcpp]
-double DEG_to_RAD(double d) { return d * PI / 180.0; }
-double RAD_to_DEG(double r) { return r * 180.0 / PI; }
-\end{lstlisting}
-
-\subsection{Structures}
-\subsubsection{Point}
-\begin{lstlisting}[style=compactcpp]
-struct point_i {
-    int x, y;
-    point_i() { x = y = 0; }
-    point_i(int _x, int _y) : x(_x), y(_y) {}
-};
-
-struct point {
-    double x, y;
-    point() { x = y = 0.0; }
-    point(double _x, double _y) : x(_x), y(_y) {}
-};
-\end{lstlisting}
-
-\subsubsection{Line}
-\begin{lstlisting}[style=compactcpp]
-struct line {
-    double a, b, c;
-    // ax + by + c = 0
-};
-\end{lstlisting}
-
-\subsection{Circle}
-\subsubsection{Check if point is inside circle}
-\begin{lstlisting}[style=compactcpp]
-int insideCircle(point_i p, point_i c, int r) {
-    int dx = p.x - c.x, dy = p.y - c.y;
-    int Euc = dx * dx + dy * dy, rSq = r * r;
-    return Euc < rSq ? 0 : Euc == rSq ? 1 : 2;
-    // 0 = inside, 1 = on border, 2 = outside
-}
-\end{lstlisting}
-
-\subsubsection{Arc Length}
-To calculate the arc use \texttt{L = r * theta} where theta is in radians.
-
-\subsection{Triangle}
-\subsubsection{Area using Heron's formula}
-\begin{lstlisting}[style=compactcpp]
-double triangleArea(double a, double b, double c) {
-    double s = (a + b + c) / 2.0; // semiperimeter
-    return sqrt(s * (s - a) * (s - b) * (s - c));
-}
-\end{lstlisting}
-
-\subsubsection{Distance between points}
-\begin{lstlisting}[style=compactcpp]
-double dist(point p1, point p2) {
-    return sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
-}
-\end{lstlisting}
-
-\subsubsection{Perimeter}
-\begin{lstlisting}[style=compactcpp]
-double perimeter(double a, double b, double c) {
-    return a + b + c;
-}
-
-double perimeter(point a, point b, point c) {
-    return dist(a, b) + dist(b, c) + dist(c, a);
-}
-\end{lstlisting}
-
-\subsection{Save int as real number}
-For more precision you can use scanf:
-\begin{lstlisting}[style=compactcpp]
-int a, b;
-scanf("%d.%d", &a, &b);
-\end{lstlisting}
-
 \section{C++ Functions}
 \subsection{Common STL Algorithms}
 
@@ -479,10 +337,15 @@ scanf("%d.%d", &a, &b);
     \hline
 \end{tabularx}
 
+% --------------------------------------------------------------------
 
 \section{Binary search in the answer}
 \lstinputlisting[style=compactcpp]{reference/binary_search/standard.cpp}
+
+% --------------------------------------------------------------------
+
 \section{Data Structures}
+
 \subsection{Fenwick Tree}
 \lstinputlisting[style=compactcpp]{reference/data_structures/fenwick_tree/fenwick_tree.cpp}
 
@@ -527,7 +390,6 @@ scanf("%d.%d", &a, &b);
 
 \subsection{Persistent Array}
 \lstinputlisting[style=compactcpp]{reference/data_structures/persistent/persistent_array.cpp}
-
 
 \subsection{Path Copying - Persistent Array}
 \lstinputlisting[style=compactcpp]{reference/data_structures/persistent/path_copying_persistent_array.cpp}
@@ -605,7 +467,6 @@ scanf("%d.%d", &a, &b);
 \subsection{SPFA Bellman Ford}
 \lstinputlisting[style=compactcpp]{reference/graph/spfa.cpp}
 
-
 \subsection{Floyd-Warshall}
 \lstinputlisting[style=compactcpp]{reference/graph/floyd_warshall.cpp}
 
@@ -639,7 +500,6 @@ scanf("%d.%d", &a, &b);
 \subsection{Bridge Tree}
 \lstinputlisting[style=compactcpp]{reference/graph/bridge_tree.cpp}
 
-
 \subsection{2-SAT}
 \lstinputlisting[style=compactcpp]{reference/graph/2_sat.cpp}
 
@@ -648,6 +508,8 @@ scanf("%d.%d", &a, &b);
 
 \subsection{Gale-Shapley Algorithm (Stable marriage)}
 \lstinputlisting[style=compactcpp]{reference/graph/gale_shapley.cpp}
+
+% --------------------------------------------------------------------
 
 \section{Trees}
 
@@ -675,6 +537,8 @@ scanf("%d.%d", &a, &b);
 \subsection{Tree Distances}
 \lstinputlisting[style=compactcpp]{reference/trees/tree_distances.cpp}
 
+% --------------------------------------------------------------------
+
 \section{Flows}
 
 \subsection{Ford-Fulkerson Maximum Flow}
@@ -691,6 +555,8 @@ scanf("%d.%d", &a, &b);
 
 \subsection{Kuhn's Algorithm}
 \lstinputlisting[style=compactcpp]{reference/flows/kuhn.cpp}
+
+% --------------------------------------------------------------------
 
 \section{Dynamic Programming}
 
@@ -727,6 +593,8 @@ scanf("%d.%d", &a, &b);
 \subsection{Double DP}
 \lstinputlisting[style=compactcpp]{reference/dp/double_dp.cpp}
 
+% --------------------------------------------------------------------
+
 \section{Math}
 
 \subsection{Prime}
@@ -740,8 +608,10 @@ scanf("%d.%d", &a, &b);
 
 \subsection{Sieve of Eratosthenes (count primes)}
 \lstinputlisting[style=compactcpp]{reference/math/sieve_count_primes.cpp}
+
 \subsection{Segmented Sieve}
 \lstinputlisting[style=compactcpp]{reference/math/segmented_sieve.cpp}
+
 \subsection{Linear sieve}
 \lstinputlisting[style=compactcpp]{reference/math/linear_sieve.cpp}
 
@@ -756,24 +626,30 @@ scanf("%d.%d", &a, &b);
 
 \subsection{Binpow}
 \lstinputlisting[style=compactcpp]{reference/math/binpow.cpp}
+
 \subsection{Modulo Inverse}
 \lstinputlisting[style=compactcpp]{reference/math/modulo_inverse.cpp}
 
 \subsection{BinPow Modulo Inv}
 \lstinputlisting[style=compactcpp]{reference/math/binpow_mod_inv.cpp}
+
 \subsection{Binomial Coefficients}
 \lstinputlisting[style=compactcpp]{reference/math/binomial_coefficients.cpp}
+
 \subsection{Newton Method (Sqrt and iSqrt)}
 \lstinputlisting[style=compactcpp]{reference/math/newton_method.cpp}
+
 \subsection{Integration with Simpson Method}
 \lstinputlisting[style=compactcpp]{reference/math/simpson_integration.cpp}
+
 \subsection{Ternary Search}
 \lstinputlisting[style=compactcpp]{reference/math/ternary_search.cpp}
+
 \subsection{DP Pascal triangle 1D}
 \lstinputlisting[style=compactcpp]{reference/math/dp_pascal_1d.cpp}
+
 \subsection{DP Pascal triangle 2D}
 \lstinputlisting[style=compactcpp]{reference/math/dp_pascal_2d.cpp}
-
 
 \subsection{Euler's Totient}
 \lstinputlisting[style=compactcpp]{reference/math/eulers_totient.cpp}
@@ -783,6 +659,8 @@ scanf("%d.%d", &a, &b);
 
 \subsection{Discrete Log}
 \lstinputlisting[style=compactcpp]{reference/math/discrete_log.cpp}
+
+% --------------------------------------------------------------------
 
 \section{Polynomials}
 
@@ -795,6 +673,8 @@ scanf("%d.%d", &a, &b);
 \subsection{Berlekamp Messey}
 \lstinputlisting[style=compactcpp]{reference/polynomials/berlekamp_messey.cpp}
 
+% --------------------------------------------------------------------
+
 \section{Linear Algebra}
 
 \subsection{Determinant of a Matrix}
@@ -803,26 +683,31 @@ scanf("%d.%d", &a, &b);
 \subsection{Rank of a Matrix}
 \lstinputlisting[style=compactcpp]{reference/linear_algebra/rank.cpp}
 
-
 \subsection{Gauss-Jordan}
 \lstinputlisting[style=compactcpp]{reference/linear_algebra/gauss_jordan.cpp}
 
-
 \subsection{Matrix Exponentiation}
 \lstinputlisting[style=compactcpp]{reference/linear_algebra/matrix_exponentiation.cpp}
+
+% --------------------------------------------------------------------
 
 \section{Geometry}
 
 \subsection{Line Segment Intersection}
 \lstinputlisting[style=compactcpp]{reference/geometry/line_segment_intersection.cpp}
+
 \subsection{Minimum Euclidian Distance}
 \lstinputlisting[style=compactcpp]{reference/geometry/min_euclidean_distance.cpp}
+
 \subsection{Point in polygon}
 \lstinputlisting[style=compactcpp]{reference/geometry/point_in_polygon.cpp}
+
 \subsection{Point Location Test}
 \lstinputlisting[style=compactcpp]{reference/geometry/point_location_test.cpp}
+
 \subsection{Polygon Area}
 \lstinputlisting[style=compactcpp]{reference/geometry/polygon_area.cpp}
+
 \subsection{Convex Hull}
 \lstinputlisting[style=compactcpp]{reference/geometry/convex_hull.cpp}
 
@@ -832,10 +717,12 @@ scanf("%d.%d", &a, &b);
 \subsection{Polar sort}
 \lstinputlisting[style=compactcpp]{reference/geometry/polar_sort.cpp}
 
+% --------------------------------------------------------------------
+
 \section{Strings}
 
-\subsection{Marranadas de Quique}
-\lstinputlisting[style=compactcpp]{reference/strings/marranadas_de_quique.cpp}
+\subsection{Cool Tools}
+\lstinputlisting[style=compactcpp]{reference/strings/cool_tools.cpp}
 
 \subsection{KMP Algorithm}
 \lstinputlisting[style=compactcpp]{reference/strings/kmp.cpp}
@@ -866,6 +753,9 @@ scanf("%d.%d", &a, &b);
 
 \subsection{Suffix Automaton}
 \lstinputlisting[style=compactcpp]{reference/strings/suffix_automaton.cpp}
+
+% --------------------------------------------------------------------
+
 \section{Formulas}
 
 \subsection{Sums}
@@ -973,13 +863,12 @@ Permutations of a set sush that none of the elements appear in their original po
 D(n) = (n-1)(D(n-1)+D(n-2)) = nD(n-1)+(-1)^n = \lfloor \frac{n!}{e}\rfloor
 \]
 
+% --------------------------------------------------------------------
+
 \section{Miscellaneous}
 
 \subsection{Implementation tricks}
 \lstinputlisting[style=compactcpp]{reference/misc/implementation_tricks.cpp}
-
-\subsection{Get Least Significant Bit}
-\lstinputlisting[style=compactcpp]{reference/misc/lsb.cpp}
 
 \subsection{Is power of two?}
 \lstinputlisting[style=compactcpp]{reference/misc/is_power_of_two.cpp}
@@ -999,6 +888,8 @@ D(n) = (n-1)(D(n-1)+D(n-2)) = nD(n-1)+(-1)^n = \lfloor \frac{n!}{e}\rfloor
 \subsection{ASCII table}
 \includegraphics[width=0.8\linewidth]{img/ASCII-Table.png}
 
+% --------------------------------------------------------------------
+
 \section{C++ stuff}
 
 \subsection{Compilation}
@@ -1006,7 +897,6 @@ D(n) = (n-1)(D(n-1)+D(n-2)) = nD(n-1)+(-1)^n = \lfloor \frac{n!}{e}\rfloor
 \texttt{g++-13 -std=c++20 name.cpp}
 
 \subsection{Compiler optimizations}
-
 
 \begin{lstlisting}[style=compactcpp]
 // Makes bit operations faster
@@ -1037,6 +927,5 @@ x \& -x is the least bit in x
 c = x \& -x, r=x+c, \texttt{(((bin\_pow(r,x)) >> 2)/c) OR r}  next number bigger than x same number of bits set.
 
 \end{multicols*}
-
 
 \end{document}
