@@ -1,3 +1,6 @@
+// Implements the Fast Fourier Transform (FFT) for fast polynomial multiplication.
+// Time complexity: O(N log N)
+// Space complexity: O(N)
 using cd = complex<double>;
 const double PI = acos(-1);
 
@@ -41,7 +44,7 @@ void fft(vector<cd> & a, bool invert) {
     }
 }
 
-vector<int> multiply(vector<int> const& a, vector<int> const& b) {
+vector<long long> multiply(vector<int> const& a, vector<int> const& b) {
     vector<cd> fa(a.begin(), a.end()), fb(b.begin(), b.end());
     int n = 1;
     while (n < a.size() + b.size())
@@ -55,17 +58,11 @@ vector<int> multiply(vector<int> const& a, vector<int> const& b) {
         fa[i] *= fb[i];
     fft(fa, true);
 
-    vector<int> result(n);
+    vector<long long> result(n);
     for (int i = 0; i < n; i++)
         result[i] = round(fa[i].real());
+
+    // If the inputs represent coefficients of large numbers, a normalization
+    // step with carrying would be required here.
     return result;
-}
-
-// Normalization
-
-int carry = 0;
-for (int i = 0; i < n; i++){
-    result[i] += carry;
-    carry = result[i] / 10;
-    result[i] %= 10;
 }
