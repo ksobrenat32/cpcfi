@@ -1,37 +1,41 @@
-struct Fenwick2DPerType {
+// Implements a manager for multiple 2D Fenwick Trees, allowing for counting
+// objects of different types on a 2D grid. It maps a type key to a dedicated
+// Fenwick Tree instance.
+//
+// This file requires the `FenwickTree2D` implementation from `fenwick_2d_sum.cpp`.
+//
+// Time Complexity: O(log R * log C) for update and query (amortized due to map access).
+// Space Complexity: O(K * R * C) where K is the number of distinct types used.
+
+#include <unordered_map>
+
+// Note: The following include is for context and assumes `fenwick_2d_sum.cpp` is available.
+#include "fenwick_2d_sum.cpp"
+
+template<typename TypeKey, typename T>
+struct FenwickTree2DManager {
+private:
     int rows, cols;
-    unordered_map<int, Fenwick2D> trees;  // Map from type to 2D Fenwick Tree
+    std::unordered_map<TypeKey, FenwickTree2D<T>> trees;
 
-    Fenwick2DPerType(int r, int c) : rows(r), cols(c) {}
+public:
+    FenwickTree2DManager(int r, int c) : rows(r), cols(c) {}
 
-    // Update: add 'delta' objects of type 't' at position (x, y)
-    void update(int t, int x, int y, int delta) {
-        if (trees.find(t) == trees.end()) {
-            trees[t] = Fenwick2D(rows, cols);
+    // Adds 'delta' to the count of type 'key' at position (x, y) (1-based).
+    void update(TypeKey key, int x, int y, T delta) {
+        if (trees.find(key) == trees.end()) {
+            // Lazily create a new Fenwick Tree for this type.
+            trees.emplace(key, FenwickTree2D<T>(rows, cols));
         }
-        trees[t].update(x, y, delta);
+        trees.at(key).update(x, y, delta);
     }
 
-    // Query: count of type 't' in rectangle [x1,y1] to [x2,y2]
-    int query(int t, int x1, int y1, int x2, int y2) {
-        if (trees.find(t) == trees.end()) return 0;
-        return trees[t].range_query(x1, y1, x2, y2);
+    // Queries the total count of type 'key' in the rectangle from
+    // (x1, y1) to (x2, y2) (1-based, inclusive).
+    T query(TypeKey key, int x1, int y1, int x2, int y2) {
+        if (trees.find(key) == trees.end()) {
+            return 0;
+        }
+        return trees.at(key).range_query(x1, y1, x2, y2);
     }
-};
-
-// Requires the base Fenwick2D implementation from previous answer
-struct Fenwick2D {
-    vector<vector<int>> tree;
-    int rows, cols;
-
-    Fenwick2D(int r, int c) : rows(r), cols(c),
-        tree(r + 1, vector<int>(c + 1)) {}
-
-    void update(int x, int y, int delta) { /* same as before */ }
-
-    int query(int x, int y) { /* same as before */ }
-
-    int range_query(int x1, int y1, int x2, int y2) { /* same as before */ }
-
-    int lsb(int i) { return i & -i; }
 };

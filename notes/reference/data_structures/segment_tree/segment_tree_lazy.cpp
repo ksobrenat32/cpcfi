@@ -1,102 +1,111 @@
-typedef long long ll;
-typedef vector<int> vec;
-typedef vector<pair<int,int>> vpii;
-const ll mod=1e9+7;
-const int MAX=1e5+3;
-const int limit=2e5+3;
-const int TAM=2e5+1;
-ll t[4*TAM];
-ll op[4*TAM];
-int type[4*TAM];
-//ascii https://elcodigoascii.com.ar/
+// Implements a Segment Tree with Lazy Propagation.
+// This implementation is configured for two common operations:
+// 1. Range Update: Add a value to all elements in a range [l, r].
+// 2. Range Query: Find the sum of all elements in a range [l, r].
+//
+// The template is designed to be adaptable for other operations (e.g., range set,
+// range min/max) by modifying the `join_values`, `apply_lazy`, and `join_lazy` methods.
+//
+// Time Complexity: O(N) for construction, O(log N) for range updates and queries.
+// Space Complexity: O(N)
 
-void propagate(int root,int l,int r)
-{
-    if(type[root]==1)
-    {
-        t[root]+=op[root]*(r+1-l);
-        if(l!=r){
-            op[2*root]+=op[root];
-            op[2*root+1]+=op[root];
-            type[2*root+1]=max(1,type[2*root+1]);
-            type[2*root]=max(1,type[2*root]);
+#include <vector>
+#include <functional>
+
+template<typename T, typename U>
+class LazySegmentTree {
+private:
+    int n;
+    std::vector<T> tree;
+    std::vector<U> lazy;
+    T query_identity = 0;
+    U update_identity = 0;
+
+    // --- Core Operation Functions (customize for different problems) ---
+
+    // Combines the results from left and right children.
+    T join_values(T left, T right) {
+        return left + right;
+    }
+
+    // Applies a lazy update to a node's actual value.
+    T apply_lazy_to_value(T value, U lazy_val, int range_len) {
+        return value + lazy_val * range_len;
+    }
+
+    // Combines a new lazy update with a pending one on a node.
+    U join_lazy_updates(U existing_lazy, U new_lazy) {
+        return existing_lazy + new_lazy;
+    }
+
+    // --- End of Core Operation Functions ---
+
+    void push(int v_idx, int tl, int tr) {
+        if (lazy[v_idx] == update_identity) return;
+
+        tree[v_idx] = apply_lazy_to_value(tree[v_idx], lazy[v_idx], tr - tl + 1);
+        if (tl != tr) {
+            lazy[2 * v_idx] = join_lazy_updates(lazy[2 * v_idx], lazy[v_idx]);
+            lazy[2 * v_idx + 1] = join_lazy_updates(lazy[2 * v_idx + 1], lazy[v_idx]);
+        }
+        lazy[v_idx] = update_identity;
+    }
+
+    void build_recursive(const std::vector<T>& arr, int v_idx, int tl, int tr) {
+        if (tl == tr) {
+            if (tl < arr.size()) tree[v_idx] = arr[tl];
+        } else {
+            int tm = tl + (tr - tl) / 2;
+            build_recursive(arr, 2 * v_idx, tl, tm);
+            build_recursive(arr, 2 * v_idx + 1, tm + 1, tr);
+            tree[v_idx] = join_values(tree[2 * v_idx], tree[2 * v_idx + 1]);
         }
     }
-    else
-    {
-        if(type[root]==2){
-            t[root]=op[root]*(r+1-l);
-            if(l!=r){
-                op[2*root]=op[root];
-                op[2*root+1]=op[root];
-                type[2*root+1]=2;
-                type[2*root]=2;
-            }
+
+    void update_recursive(int v_idx, int tl, int tr, int l, int r, U addend) {
+        push(v_idx, tl, tr);
+        if (l > r) return;
+        if (l == tl && r == tr) {
+            lazy[v_idx] = join_lazy_updates(lazy[v_idx], addend);
+            push(v_idx, tl, tr);
+        } else {
+            push(v_idx, tl, tr);
+            int tm = tl + (tr - tl) / 2;
+            update_recursive(2 * v_idx, tl, tm, l, std::min(r, tm), addend);
+            update_recursive(2 * v_idx + 1, tm + 1, tr, std::max(l, tm + 1), r, addend);
+            tree[v_idx] = join_values(tree[2*v_idx], tree[2*v_idx+1]);
         }
     }
-    op[root]=0;
-    type[root]=0;
-}
 
-void build(int root,int l,int r,vector<ll> &arr)
-{
-    if(l==r)
-    {
-        t[root]=arr[l];
-        op[root]=0;
-        type[root]=0;
-        return;
+    T query_recursive(int v_idx, int tl, int tr, int l, int r) {
+        if (l > r) return query_identity;
+        push(v_idx, tl, tr);
+        if (l == tl && r == tr) {
+            return tree[v_idx];
+        }
+        int tm = tl + (tr - tl) / 2;
+        T left_res = query_recursive(2 * v_idx, tl, tm, l, std::min(r, tm));
+        T right_res = query_recursive(2 * v_idx + 1, tm + 1, tr, std::max(l, tm + 1), r);
+        return join_values(left_res, right_res);
     }
-    int mid=(l+r)/2;
-    build(2*root,l,mid,arr);
-    build(2*root+1,mid+1,r,arr);
-    t[root]=t[2*root]+t[2*root+1];
-    op[root]=0;
-    type[root]=0;
-}
 
-void sum(int root,int l,int r,int a,int b,ll val)
-{
-    propagate(root,l,r);
-    if(a>b) return;
-    if(l==a && r==b)
-    {
-        op[root]=val;
-        type[root]=1;
-        propagate(root,l,r);
-        return;
+public:
+    LazySegmentTree(int size) : n(size) {
+        tree.assign(4 * n, 0);
+        lazy.assign(4 * n, 0);
     }
-    int mid=(l+r)/2;
-    sum(2*root,l,mid,a,min(b,mid),val);
-    sum(2*root+1,mid+1,r,max(mid+1,a),b,val);
-    t[root]=t[2*root]+t[2*root+1];
-}
 
-void setR(int root,int l,int r,int a,int b,ll val)
-{
-    propagate(root,l,r);
-    if(a>b) return;
-    if(l==a && r==b)
-    {
-        op[root]=val;
-        type[root]=2;
-        propagate(root,l,r);
-        return;
+    LazySegmentTree(const std::vector<T>& arr) : n(arr.size()) {
+        tree.resize(4 * n);
+        lazy.assign(4 * n, 0);
+        build_recursive(arr, 1, 0, n - 1);
     }
-    int mid=(l+r)/2;
-    setR(2*root,l,mid,a,min(b,mid),val);
-    setR(2*root+1,mid+1,r,max(mid+1,a),b,val);
-    t[root]=t[2*root]+t[2*root+1];
-}
 
-ll consult(int root,int l,int r, int a,int b)
-{
-    propagate(root,l,r);
-    if(a>b) return 0;
-    if(l==a && r==b){
-        return t[root];
+    void range_update(int l, int r, U addend) {
+        update_recursive(1, 0, n - 1, l, r, addend);
     }
-    int mid=(l+r)/2;
-    return consult(2*root,l,mid,a,min(b,mid))+
-    consult(2*root+1,mid+1,r,max(mid+1,a),b);
-}
+
+    T range_query(int l, int r) {
+        return query_recursive(1, 0, n - 1, l, r);
+    }
+};

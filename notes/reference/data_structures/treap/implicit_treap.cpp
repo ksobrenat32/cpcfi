@@ -1,97 +1,135 @@
-using namespace std;
+// Implements an Implicit Treap, a randomized binary search tree used as a dynamic array.
+// The position of an element is its "implicit key" determined by in-order traversal.
+// This allows for O(log N) expected time complexity for insertion, deletion,
+// and access by index. It's also easily augmented to support powerful range operations.
+//
+// This implementation is augmented to support reversing a subarray in O(log N).
 
-#include<random>
-#include<chrono>
+#include <memory>
+#include <random>
+#include <chrono>
+#include <functional>
+#include <algorithm> // For std::swap
 
-mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+template<typename T>
+class ImplicitTreap {
+private:
+    struct Node {
+        T value;
+        uint32_t priority;
+        int size = 1;
+        bool reverse_lazy = false;
+        std::unique_ptr<Node> left = nullptr;
+        std::unique_ptr<Node> right = nullptr;
 
-#define ll long long
+        Node(T val, uint32_t p) : value(val), priority(p) {}
+    };
 
-struct TreapNode{
-    ll key, pr, sz;
-    TreapNode *l, *r;
+    std::unique_ptr<Node> root = nullptr;
+    inline static std::mt19937 rng = std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
+
+    int get_size(const std::unique_ptr<Node>& node) {
+        return node ? node->size : 0;
+    }
+
+    void update_size(std::unique_ptr<Node>& node) {
+        if (node) {
+            node->size = 1 + get_size(node->left) + get_size(node->right);
+        }
+    }
+
+    void push_lazy(std::unique_ptr<Node>& node) {
+        if (node && node->reverse_lazy) {
+            node->reverse_lazy = false;
+            std::swap(node->left, node->right);
+            if (node->left) node->left->reverse_lazy ^= true;
+            if (node->right) node->right->reverse_lazy ^= true;
+        }
+    }
+
+    // Splits t into l and r. l gets the first `pos` elements, r gets the rest.
+    void split(std::unique_ptr<Node> t, int pos, std::unique_ptr<Node>& l, std::unique_ptr<Node>& r, int add = 0) {
+        if (!t) {
+            l = nullptr;
+            r = nullptr;
+            return;
+        }
+        push_lazy(t);
+        int current_pos = add + get_size(t->left);
+        if (pos <= current_pos) {
+            split(std::move(t->left), pos, l, t->left, add);
+            r = std::move(t);
+            update_size(r);
+        } else {
+            split(std::move(t->right), pos, t->right, r, current_pos + 1);
+            l = std::move(t);
+            update_size(l);
+        }
+    }
+
+    // Merges l and r into t.
+    std::unique_ptr<Node> merge(std::unique_ptr<Node> l, std::unique_ptr<Node> r) {
+        push_lazy(l);
+        push_lazy(r);
+        if (!l) return r;
+        if (!r) return l;
+
+        if (l->priority > r->priority) {
+            l->right = merge(std::move(l->right), std::move(r));
+            update_size(l);
+            return l;
+        } else {
+            r->left = merge(std::move(l), std::move(r->left));
+            update_size(r);
+            return r;
+        }
+    }
+
+public:
+    ImplicitTreap() = default;
+
+    void insert(int pos, T value) {
+        auto new_node = std::make_unique<Node>(value, rng());
+        std::unique_ptr<Node> l, r;
+        split(std::move(root), pos, l, r);
+        root = merge(std::move(l), std::move(new_node));
+        root = merge(std::move(root), std::move(r));
+    }
+
+    void erase(int pos) {
+        std::unique_ptr<Node> l, r, m;
+        split(std::move(root), pos, l, r);
+        split(std::move(r), 1, m, r); // a treap of size 1 (the element to delete)
+        root = merge(std::move(l), std::move(r));
+    }
+
+    // Reverses the subarray [l, r] (inclusive, 0-indexed).
+    void reverse(int l, int r) {
+        if (l > r) return;
+        std::unique_ptr<Node> t1, t2, t3;
+        split(std::move(root), r + 1, t1, t3);
+        split(std::move(t1), l, t1, t2);
+        if(t2) t2->reverse_lazy ^= true;
+        root = merge(std::move(t1), std::move(t2));
+        root = merge(std::move(root), std::move(t3));
+    }
+
+    int size() {
+        return get_size(root);
+    }
+
+    // Helper to traverse and collect values, useful for debugging.
+    void get_values(std::unique_ptr<Node>& t, std::vector<T>& values) {
+        if (!t) return;
+        push_lazy(t);
+        get_values(t->left, values);
+        values.push_back(t->value);
+        get_values(t->right, values);
+    }
+
+    std::vector<T> to_vector() {
+        std::vector<T> values;
+        get_values(root, values);
+        return values;
+    }
 };
-
-typedef TreapNode* Treap;
-
-int getSize(Treap &t){
-    return t ? t->sz : 0;
-}
-
-void updateSize(Treap &t){
-    if (t) t->sz = 1 + getSize(t->l) + getSize(t->r);
-}
-
-void split(Treap& t, ll k, Treap &l, Treap  &r){
-    if(not t) l = r = nullptr;
-
-    else if(k < t->key){
-        split(t->l,k,l, t->l);
-        r = t;
-        updateSize(r);
-    }else{
-        split(t->r,k,t->r,r);
-        l = t;
-        updateSize(l);
-    }
-}
-
-void insert(Treap& t, Treap a){
-    if(not t) t=a;
-    else if(a->pr > t->pr){
-        split(t, a->key, a->l, a->r);
-        t = a;
-    }else{
-        if(a->key < t-> key) insert(t->l,a);
-        else insert(t->r,a);
-    }
-    updateSize(t);
-}
-
-void merge(Treap &t, Treap l, Treap r){
-    if(not l) t = r;
-    else if(not r) t = l;
-
-    else if(l->pr > r->pr){
-        merge(l->r, l->r,r);
-        t=l;
-        updateSize(t);
-    }else{
-        merge(r->l,l,r->l);
-        t=r;
-        updateSize(t);
-    }
-}
-
-void erase(Treap &t, ll k){
-    if(not t) return;
-    if(t->key == k) merge(t,t->l, t->r);
-
-    else{
-        if(k<t->key) erase(t->l,k);
-        else erase(t->r, k);
-    }
-    updateSize(t);
-}
-
-bool find(Treap& t, ll k){
-    if (not t) return false;
-    if(t->key == k) return true;
-    if(k<t->key) return find(t->l,k);
-    return find(t->r,k);
-}
-
-void insertValue(Treap &t, ll k){
-    if(not find(t,k)){
-        Treap new_node = new TreapNode {k,rng(), 0,nullptr, nullptr};
-        insert(t, new_node);
-    }
-}
-
-ll getKth(Treap &t, int k){
-    if(!t || k<=0 || k>getSize(t)) return 0;
-    int leftSize = getSize(t->l);
-    if(k == leftSize+1) return t->key;
-    if(k <= leftSize) return getKth(t->l,k);
-    return getKth(t->r, k-leftSize-1);
-}
