@@ -1,64 +1,63 @@
-// LPS for s, lps[i] could also be defined as the longest prefix which is also a proper suffix
-vi computeLPS(string s){
-    size_t len = 0;
-    size_t M = s.size();
-    vi lps(M, 0);
+//=========== Knuth-Morris-Pratt (KMP) Algorithm ===========
+// Description: An efficient string searching algorithm that finds occurrences of a pattern within a text.
+// It preprocesses the pattern to create a Longest Proper Prefix (LPS) array, which is then used
+// to skip unnecessary comparisons, achieving linear time complexity.
 
-    size_t i = 1;
-    while(i < M) {
-        if( s[i] == s[len]){
-            len++;
-            lps[i] = len;
+// Description: Computes the Longest Proper Prefix (LPS) array for the KMP algorithm.
+// The value lps[i] is the length of the longest proper prefix of pattern[0..i] which is also a suffix of pattern[0..i].
+// Time Complexity: O(M), where M is the length of the pattern.
+// Space Complexity: O(M) to store the LPS array.
+vector<int> computeLPS(const string& pattern) {
+    int pattern_len = pattern.size();
+    vector<int> lps(pattern_len, 0);
+    int length = 0; // Length of the previous longest prefix suffix
+
+    int i = 1;
+    while (i < pattern_len) {
+        if (pattern[i] == pattern[length]) {
+            length++;
+            lps[i] = length;
             i++;
         } else {
-            if(len != 0){
-                len = lps[len-1];
+            if (length != 0) {
+                length = lps[length - 1];
             } else {
                 lps[i] = 0;
                 i++;
             }
         }
     }
-
     return lps;
 }
 
-// Get number of occurrences of a pattern in a text using KMP
-// O(N+M)
-size_t KMPOccurrences(string pattern, string text){
-    vi lps = computeLPS(pattern); // LPS array
+// Description: Counts the number of occurrences of a pattern in a text using the KMP algorithm.
+// Time Complexity: O(N + M), where N is the text length and M is the pattern length.
+// Space Complexity: O(M) for the LPS array.
+int KMPOccurrences(const string& pattern, const string& text) {
+    int pattern_len = pattern.size();
+    int text_len = text.size();
+    vector<int> lps = computeLPS(pattern);
 
-    size_t M = pattern.size();
-    size_t N = text.size();
+    int text_idx = 0;    // index for text
+    int pattern_idx = 0; // index for pattern
+    int count = 0;
 
-    size_t i = 0; // Index for text
-    size_t j = 0; // Index for pattern
-
-    size_t cnt = 0; // Counter
-
-    while ((N - i) >= (M - j)) {
-        // Watch for the pattern
-        if (pattern[j] == text[i]) {
-            j++;
-            i++;
+    while (text_idx < text_len) {
+        if (pattern[pattern_idx] == text[text_idx]) {
+            pattern_idx++;
+            text_idx++;
         }
 
-        // If the full match found
-        if (j == M) {
-            cnt++;
-            j = lps[j - 1];
-        }
-
-        // Mismatch after j matches
-        else if (i < N && pattern[j] != text[i]) {
-            // Do not match lps[0..lps[j-1]] characters,
-            // they will match anyway
-            if (j != 0)
-                j = lps[j - 1];
-            else
-                i++;
+        if (pattern_idx == pattern_len) {
+            count++;
+            pattern_idx = lps[pattern_idx - 1];
+        } else if (text_idx < text_len && pattern[pattern_idx] != text[text_idx]) {
+            if (pattern_idx != 0) {
+                pattern_idx = lps[pattern_idx - 1];
+            } else {
+                text_idx++;
+            }
         }
     }
-
-    return cnt;
+    return count;
 }
