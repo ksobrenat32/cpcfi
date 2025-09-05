@@ -1,12 +1,12 @@
-name: Build Notes PDF
+name: Build Reference PDF
 
 on:
   push:
     paths:
-      - 'notes/**'
+      - 'notes/Reference.tex'
+      - 'template.cpp'
     branches:
       - main
-      - master
   workflow_dispatch:
 
 permissions:
@@ -20,17 +20,17 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install Pandoc
+    - name: Install LaTeX
       run: |
         sudo apt-get update
-        sudo apt-get install -y pandoc texlive-xetex
+        sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic
 
     - name: Build PDF
       run: |
         cd notes
-        bash build.sh
+        xelatex Reference.tex
+        xelatex Reference.tex
   
-
     - name: Generate release tag
       id: tag
       run: |
@@ -39,13 +39,12 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: notes/notes.pdf
+        files: notes/Reference.pdf
         tag_name: ${{ steps.tag.outputs.tag }}
-        name: Notes PDF - Build ${{ github.run_number }}
+        name: Reference PDF - Build ${{ github.run_number }}
         body: |
-          Automatically generated PDF from competitive programming notes.
+          Automatically generated PDF from competitive programming reference.
           
           Generated from commit: ${{ github.sha }}
-          Date: ${{ github.event.head_commit.timestamp }}
         token: ${{ secrets.GITHUB_TOKEN }}
         
