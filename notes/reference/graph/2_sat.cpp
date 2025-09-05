@@ -1,75 +1,82 @@
+// 2-Satisfiability (2-SAT) solver using Kosaraju's algorithm for Strongly Connected Components.
+// Time complexity: O(V + E) where V is the number of variables and E is the number of clauses.
+// Space complexity: O(V + E).
+
 struct TwoSatSolver {
-    int n_vars;
-    int n_vertices;
-    vector<vector<int>> adj, adj_t;
-    vector<bool> used;
-    vector<int> order, comp;
+    int num_variables;
+    int num_vertices;
+    vector<vector<int>> implication_graph;
+    vector<vector<int>> implication_graph_transpose;
+    vector<bool> visited;
+    vector<int> topological_order;
+    vector<int> scc;
     vector<bool> assignment;
 
-    TwoSatSolver(int _n_vars) : n_vars(_n_vars), n_vertices(2 * n_vars), adj(n_vertices), adj_t(n_vertices), used(n_vertices), order(), comp(n_vertices, -1), assignment(n_vars) {
-        order.reserve(n_vertices);
-    }
-    void dfs1(int v) {
-        used[v] = true;
-        for (int u : adj[v]) {
-            if (!used[u])
-                dfs1(u);
-        }
-        order.push_back(v);
-    }
-
-    void dfs2(int v, int cl) {
-        comp[v] = cl;
-        for (int u : adj_t[v]) {
-            if (comp[u] == -1)
-                dfs2(u, cl);
-        }
+    TwoSatSolver(int n_vars) :
+        num_variables(n_vars),
+        num_vertices(2 * n_vars),
+        implication_graph(num_vertices),
+        implication_graph_transpose(num_vertices),
+        visited(num_vertices),
+        scc(num_vertices, -1),
+        assignment(n_vars) {
+        topological_order.reserve(num_vertices);
     }
 
-    bool solve_2SAT() {
-        order.clear();
-        used.assign(n_vertices, false);
-        for (int i = 0; i < n_vertices; ++i) {
-            if (!used[i])
-                dfs1(i);
+    void find_topological_order(int u) {
+        visited[u] = true;
+        for (int v : implication_graph[u]) {
+            if (!visited[v])
+                find_topological_order(v);
+        }
+        topological_order.push_back(u);
+    }
+
+    void find_scc(int u, int current_scc_id) {
+        scc[u] = current_scc_id;
+        for (int v : implication_graph_transpose[u]) {
+            if (scc[v] == -1)
+                find_scc(v, current_scc_id);
+        }
+    }
+
+    bool is_satisfiable() {
+        topological_order.clear();
+        visited.assign(num_vertices, false);
+        for (int i = 0; i < num_vertices; ++i) {
+            if (!visited[i])
+                find_topological_order(i);
         }
 
-        comp.assign(n_vertices, -1);
-        for (int i = 0, j = 0; i < n_vertices; ++i) {
-            int v = order[n_vertices - i - 1];
-            if (comp[v] == -1)
-                dfs2(v, j++);
+        scc.assign(num_vertices, -1);
+        int scc_count = 0;
+        for (int i = 0; i < num_vertices; ++i) {
+            int u = topological_order[num_vertices - 1 - i];
+            if (scc[u] == -1)
+                find_scc(u, scc_count++);
         }
 
-        assignment.assign(n_vars, false);
-        for (int i = 0; i < n_vertices; i += 2) {
-            if (comp[i] == comp[i + 1])
-                return false;
-            assignment[i / 2] = comp[i] > comp[i + 1];
+        assignment.assign(num_variables, false);
+        for (int i = 0; i < num_vertices; i += 2) {
+            if (scc[i] == scc[i + 1])
+                return false; // A variable and its negation are in the same SCC.
+            assignment[i / 2] = scc[i] > scc[i + 1];
         }
         return true;
     }
 
-    void add_disjunction(int a, bool na, int b, bool nb) {
-        // na and nb signify whether a and b are to be negated
-        a = 2 * a ^ na;
-        b = 2 * b ^ nb;
-        int neg_a = a ^ 1;
-        int neg_b = b ^ 1;
-        adj[neg_a].push_back(b);
-        adj[neg_b].push_back(a);
-        adj_t[b].push_back(neg_a);
-        adj_t[a].push_back(neg_b);
-    }
-
-    static void example_usage() {
-        TwoSatSolver solver(3); // a, b, c
-        solver.add_disjunction(0, false, 1, true);  //     a  v  not b
-        solver.add_disjunction(0, true, 1, true);   // not a  v  not b
-        solver.add_disjunction(1, false, 2, false); //     b  v      c
-        solver.add_disjunction(0, false, 0, false); //     a  v      a
-        assert(solver.solve_2SAT() == true);
-        auto expected = vector<bool>(True, False, True);
-        assert(solver.assignment == expected);
+    // Adds a disjunction (clause) of the form (variable_a OR variable_b).
+    // is_negated_a and is_negated_b are true if the variables are negated.
+    void add_disjunction(int var_a, bool is_negated_a, int var_b, bool is_negated_b) {
+        // A disjunction (a OR b) is equivalent to (NOT a => b) AND (NOT b => a).
+        // Variable i is mapped to vertex 2*i, and its negation to 2*i+1.
+        int u = 2 * var_a + (is_negated_a ? 1 : 0);
+        int v = 2 * var_b + (is_negated_b ? 1 : 0);
+        int neg_u = u ^ 1;
+        int neg_v = v ^ 1;
+        implication_graph[neg_u].push_back(v);
+        implication_graph[neg_v].push_back(u);
+        implication_graph_transpose[v].push_back(neg_u);
+        implication_graph_transpose[u].push_back(neg_v);
     }
 };
