@@ -1,26 +1,36 @@
-int majorityElement(vector<int>& nums) {
-    int vote = 0, r = 0;
-    for(int i=0; i<nums.size();i++){
-        if(nums[i] == nums[r])
-            vote++;
-        else
-            vote--;
-        if(vote == 0){
-            r = i;
-            vote = 1;
+// Description: Finds the majority element in a sequence in linear time and constant space.
+// Time Complexity: O(N)
+// Space Complexity: O(1)
+int majorityElement(const std::vector<int>& numbers) {
+    int candidate = 0;
+    int votes = 0;
+
+    // Find a candidate for the majority element
+    for (int number : numbers) {
+        if (votes == 0) {
+            candidate = number;
+            votes = 1;
+        } else if (candidate == number) {
+            votes++;
+        } else {
+            votes--;
         }
     }
 
-    int cnt = 0;
-    int goal = (nums.size())/2;
-    for(int i=0; i<nums.size(); i++){
-        if(nums[i] == nums[r]){
-            cnt++;
-            if(cnt > goal){
-                break;
-            }
+    // Verify if the candidate is the majority element
+    int count = 0;
+    for (int number : numbers) {
+        if (number == candidate) {
+            count++;
         }
     }
 
-    return nums[r];
+    if (count > numbers.size() / 2) {
+        return candidate;
+    }
+
+    // Return a sensible default if no majority element is found
+    // This part depends on the problem constraints.
+    // For example, throw an exception or return a special value.
+    return -1; // Assuming -1 is not a valid element in the array.
 }
