@@ -1,45 +1,58 @@
+#include <vector>
+#include <cmath>
+#include <algorithm>
+
+// Solves a system of linear equations using Gauss-Jordan elimination.
+// Handles unique, no-solution, and infinite-solution cases.
+// Time complexity: O(n*m*min(n,m)) for n equations, m variables.
+// Space complexity: O(n*m) for the augmented matrix.
 const double EPS = 1e-9;
-const int INF = 2; // it doesn't actually have to be infinity or a big number
+const int INF = 2; // Represents infinite solutions
 
-int gauss (vector < vector<double> > a, vector<double> & ans) {
-    int n = (int) a.size();
-    int m = (int) a[0].size() - 1;
+int gauss(std::vector<std::vector<double>> a, std::vector<double>& ans) {
+    int n = (int)a.size();
+    if (n == 0) return 1;
+    int m = (int)a[0].size() - 1;
 
-    vector<int> where (m, -1);
-    for (int col=0, row=0; col<m && row<n; ++col) {
+    std::vector<int> where(m, -1);
+    for (int col = 0, row = 0; col < m && row < n; ++col) {
         int sel = row;
-        for (int i=row; i<n; ++i)
-            if (abs (a[i][col]) > abs (a[sel][col]))
+        for (int i = row; i < n; ++i)
+            if (std::abs(a[i][col]) > std::abs(a[sel][col]))
                 sel = i;
-        if (abs (a[sel][col]) < EPS)
+        if (std::abs(a[sel][col]) < EPS)
             continue;
-        for (int i=col; i<=m; ++i)
-            swap (a[sel][i], a[row][i]);
+
+        for (int i = col; i <= m; ++i)
+            std::swap(a[sel][i], a[row][i]);
         where[col] = row;
 
-        for (int i=0; i<n; ++i)
+        for (int i = 0; i < n; ++i) {
             if (i != row) {
                 double c = a[i][col] / a[row][col];
-                for (int j=col; j<=m; ++j)
+                for (int j = col; j <= m; ++j)
                     a[i][j] -= a[row][j] * c;
             }
+        }
         ++row;
     }
 
-    ans.assign (m, 0);
-    for (int i=0; i<m; ++i)
+    ans.assign(m, 0);
+    for (int i = 0; i < m; ++i)
         if (where[i] != -1)
             ans[i] = a[where[i]][m] / a[where[i]][i];
-    for (int i=0; i<n; ++i) {
+
+    for (int i = 0; i < n; ++i) {
         double sum = 0;
-        for (int j=0; j<m; ++j)
+        for (int j = 0; j < m; ++j)
             sum += ans[j] * a[i][j];
-        if (abs (sum - a[i][m]) > EPS)
-            return 0;
+        if (std::abs(sum - a[i][m]) > EPS)
+            return 0; // No solution
     }
 
-    for (int i=0; i<m; ++i)
+    for (int i = 0; i < m; ++i)
         if (where[i] == -1)
-            return INF;
-    return 1;
+            return INF; // Infinite solutions
+
+    return 1; // Unique solution
 }
