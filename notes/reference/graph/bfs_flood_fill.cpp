@@ -1,46 +1,41 @@
-bool validate(int x, int y){
-	if(vis[x][y]) return false;
-	if(maze[x][y] == '#') return false;
-	if(x<0 or x>=n or y<0 or y>=m) return false;
-	return true;
-}
+// Flood fill algorithm using Breadth-First Search (BFS) to fill a connected region in a grid.
+// Time complexity: O(N * M), where N and M are the dimensions of the grid, as each cell is visited at most once.
+// Space complexity: O(N * M) in the worst case for the queue.
 
-bool solveMaze(int x, int y){
-    queue<pii> q;
-    q.push(mp(x,y));
-    vis[x][y] = true;
+#include <vector>
+#include <queue>
+#include <utility>
 
-    int dx[] = {1, -1, 0, 0};
-    int dy[] = {0, 0, 1, -1};
-    char move_dir[] = {'D', 'U', 'R', 'L'};
+void bfs_flood_fill(int start_row, int start_col, char new_color, std::vector<std::vector<char>>& grid) {
+    int rows = grid.size();
+    if (rows == 0) return;
+    int cols = grid[0].size();
 
-	while(!q.empty()){
-		int u =  q.front().fs;
-		int v = q.front().sc;
-		q.pop();
+    if (start_row < 0 || start_row >= rows || start_col < 0 || start_col >= cols) return;
 
-		if(maze[u][v] == 'B'){
-			while(true){
-				res.push_back(path[u][v]);
+    char original_color = grid[start_row][start_col];
+    if (original_color == new_color) return;
 
-				if(res.back() == 'U' && u + 1 < n) u++;
-				if(res.back() == 'D' && u - 1 >= 0) u--;
-				if(res.back() == 'L' && v + 1 < m) v++;
-				if(res.back() == 'R' && v - 1 >= 0) v--;
+    std::queue<std::pair<int, int>> q;
+    q.push({start_row, start_col});
+    grid[start_row][start_col] = new_color;
 
-				if(u == x and v ==y) break;
-			}
-			return true;
-		}
-            for (int i = 0; i < 4; ++i) {
-                int new_u = u + dx[i];
-                int new_v = v + dy[i];
-                if (validate(new_u, new_v)) {
-                    path[new_u][new_v] = move_dir[i];
-                    vis[new_u][new_v] = true;
-                    q.push(mp(new_u, new_v));
-                }
+    int dr[] = {-1, 1, 0, 0}; // Change in row for up, down
+    int dc[] = {0, 0, -1, 1}; // Change in col for left, right
+
+    while (!q.empty()) {
+        std::pair<int, int> current = q.front();
+        q.pop();
+
+        for (int i = 0; i < 4; ++i) {
+            int next_row = current.first + dr[i];
+            int next_col = current.second + dc[i];
+
+            if (next_row >= 0 && next_row < rows && next_col >= 0 && next_col < cols &&
+                grid[next_row][next_col] == original_color) {
+                grid[next_row][next_col] = new_color;
+                q.push({next_row, next_col});
             }
         }
-    return false;
+    }
 }
