@@ -12,11 +12,18 @@ using namespace std;
 #define all(x)                  x.begin(), x.end()
 #define sz(x)                   (int) x.size()
 typedef long long ll;
+typedef pair<int, int> pii;
+typedef vector<int> vi;
+typedef vector<pii> vpii;
+typedef vector<ll> vll;
 
 inline void solve(){
 }
 
 int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
     int T=1;
     //cin>>T;
     FO(tc,T){

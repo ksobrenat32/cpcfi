@@ -10,6 +10,7 @@
     "files.associations": {
         "iomanip": "cpp",
         "valarray": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "iostream": "cpp"
     }
 }
