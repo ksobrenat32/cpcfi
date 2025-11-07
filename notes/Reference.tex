@@ -362,7 +362,7 @@ Searching algorithm for sorted arrays or monotonic functions. Time complexity: O
 
 \subsection*{Binary Search on Answer Space}
 
-\begin{lstlisting}[style=compactcpp
+\begin{lstlisting}[style=compactcpp]
     // Binary search on answer space (monotonic condition)
     int find_min_valid(vector<int>& nums, int k) {
         auto is_valid = [&](int x) { 
@@ -513,7 +513,10 @@ struct Fenwick2DPerType {
         return trees[t].range_query(x1, y1, x2, y2);
     }
 };
+\end{lstlisting}
 
+\subsection{Fenwick 2D (Multiple types)}
+\begin{lstlisting}[style=compactcpp]
 // Requires the base Fenwick2D implementation from previous answer
 struct Fenwick2D {
     vector<vector<int>> tree;
@@ -659,6 +662,138 @@ int segtree[2*100000 + 5];
 
         return mx;
     }
+\end{lstlisting}
+
+\subsection{Segment Tree (Class-based with Find Operations)}
+
+\begin{lstlisting}[style=compactcpp]
+// Segment Tree class with find_first, find_kth, update and query operations
+class SegmentTree{
+private:
+    vector<int> segtree;
+    int n;
+    int d;
+ 
+public:
+ 
+    void build(vector<int> &a){
+        n = a.size();
+        d=1;
+        while(d<n) d<<=1;
+        segtree.assign(2*d, 0);
+        for(int i=0; i<n; i++)
+            segtree[d+i] = 1;
+        
+        for(int i=d-1; i>=1; i--)
+            segtree[i] = segtree[2*i] + segtree[2*i+1];
+    }
+ 
+    int find_first(int x){
+        if(segtree[1]<x) return -1;
+        int i=1;
+ 
+        while(i<d){
+            if(segtree[2*i] >= x) i = 2*i;
+            else i = 2*i+1;
+        }
+ 
+ 
+        return i-d;
+    }
+ 
+    int find_kth(int x){
+        //if(segtree[1]<x) return -1;
+        int i=1;
+ 
+        while(i<d){
+            if(segtree[2*i] >= x) i = 2*i;
+            else{
+                x -= segtree[2*i];
+                i = 2*i+1;
+            } 
+        }
+        return i-d;
+    }
+ 
+ 
+    void update(int pos){
+        pos+=d;
+        segtree[pos] = 0; 
+        
+        while(pos>1){ 
+            pos>>=1; 
+            segtree[pos] = segtree[2*pos] + segtree[2*pos+1];
+        }
+    }
+ 
+ 
+    int query(int l, int r){
+        l+=d;
+        r+=d;
+ 
+        int mx = INT_MIN;
+        while(l<=r){
+            if(l%2 == 1) mx = max(mx, segtree[l++]);
+            if(r%2 == 0) mx = max(mx, segtree[r--]);
+            l>>=1;
+            r>>=1;
+        }
+        return mx;
+    }
+ 
+};
+\end{lstlisting}
+
+\subsection{Merge Sort Tree}
+
+\begin{lstlisting}[style=compactcpp]
+// Merge Sort Tree: counts elements less than x in range [l, r] in O(log^2 n)
+// Each node stores a sorted array of elements in its range
+class MergeSortTree{
+private:
+    vector<vector<int>> segtree;
+    int n;
+    int d;
+ 
+public:
+    void build(vector<int> &a){
+        n = a.size();
+        d=1;
+        while(d<n) d<<=1;
+        segtree.assign(2*d, {0});
+        for(int i=0; i<n; i++)
+            segtree[d+i] = {a[i]};
+        
+        for(int i=d-1; i>=1; i--){
+            segtree[i].resize(segtree[2*i].size() + segtree[2*i].size());
+            merge(segtree[2*i].begin(),segtree[2*i].end(),
+                  segtree[2*i+1].begin(), segtree[2*i+1].end(),
+                  segtree[i].begin());
+        }
+            
+    }
+ 
+    int query(int l, int r, int x){
+        l+=d;
+        r+=d;
+ 
+        int arns = 0;
+        while(l<=r){
+            if(l%2 == 1){
+                arns += lower_bound(segtree[l].begin(), segtree[l].end(), x) - segtree[l].begin();
+                l++;
+            }
+            if(r%2 == 0){
+                arns += lower_bound(segtree[r].begin(), segtree[r].end(), x) - segtree[r].begin();
+                r--;
+            }
+            l>>=1;
+            r>>=1;
+        }
+        return arns;
+    }
+ 
+};
 \end{lstlisting}
 
 \subsection{Segment Tree (Sum query)}
@@ -836,6 +971,8 @@ template <typename T> class LazySegTree {
 \subsection{Lazy Segment Tree (Range Max/Min Query and Range Update)}
 
 \begin{lstlisting}[style=compactcpp]
+// Lazy Segment Tree for range maximum queries with range updates
+// Supports: adding a value to all elements in a range, querying max in a range
 enum QueryType{ MAX, NONE };
 
 struct Query{
@@ -1015,6 +1152,102 @@ ll consult(int root,int l,int r, int x1,int x2,int y1,int y2)
     consult(2*root+1,mid+1,r,max(mid+1,x1),x2,y1,y2);
 }
 
+\end{lstlisting}
+
+\subsection{Segment Tree 2D (Iterative, Class-based)}
+
+\begin{lstlisting}[style=compactcpp]
+// 2D Segment Tree (Iterative): efficient range sum queries and point updates on 2D grid
+// Build in O(n*m), Query and Update in O(log n * log m)
+class SegmentTree2D{
+private:
+    vector<vector<int>> segtree;
+    int n;
+    int m;
+    int d1;
+    int d2;
+ 
+public:
+ 
+    void build(vector<vector<int>> &a){
+        n = a.size();
+        m = a[0].size();
+        d1=1;
+        while(d1<n) d1<<=1;
+        
+        d2=1;
+        while(d2<m) d2<<=1;
+ 
+        segtree.assign(2*d1, vector<int>(2*d2,0));
+ 
+        // Set leaves
+        for(int i=0; i<n; i++)
+            for(int j=0; j<m; j++)
+                segtree[d1+i][d2+j] = a[i][j];
+        
+        // Propagate on columns
+        for(int i=d1; i<2*d1; i++){
+            for(int j=d2-1; j>0; j--)
+                segtree[i][j] = segtree[i][2*j] + segtree[i][2*j+1];
+        }
+ 
+        // Propagate on rows
+        for(int i=d1-1; i>0; i--){
+            for(int j=1; j<2*d2; j++)
+                segtree[i][j] = segtree[2*i][j] + segtree[2*i+1][j];
+        }
+    }
+ 
+    void update(int x, int y, int k){
+        int r = x + d1;
+        int c = y + d2;
+ 
+        segtree[r][c] = k;
+ 
+        // Update columns for the row corresponding to x
+        for(int j=c>>1; j>0; j>>=1)
+            segtree[r][j] = segtree[r][2*j] + segtree[r][2*j+1];
+ 
+        
+        for(int i=r>>1; i>0; i>>=1){
+            segtree[i][c] = segtree[2*i][c] + segtree[2*i+1][c];
+            for(int j=c>>1; j>0; j>>=1)
+                segtree[i][j] = segtree[i][2*j] + segtree[i][2*j+1];
+        }
+    }
+ 
+ 
+ 
+    int query(int x1, int y1, int x2, int y2){
+        int lx = x1+d1, rx = x2+d1+1;
+        
+        ll arns = 0;
+        while(lx<rx) {
+            if(lx & 1){
+                arns += query_y(lx, y1, y2);
+                ++lx;
+            }
+            if (rx & 1){
+                --rx;
+                arns += query_y(rx, y1, y2);
+            }
+            lx >>= 1; rx >>= 1;
+        }
+        return arns;
+    }
+ 
+    int query_y(int row, int y1, int y2) {
+        int ly = y1 + d2, ry = y2 + 1 + d2;
+        int s = 0;
+        while (ly < ry) {
+            if(ly & 1) s+=segtree[row][ly++];
+            if(ry & 1) s+=segtree[row][--ry];
+            ly >>= 1; ry >>= 1;
+        }
+        return s;
+    }
+ 
+};
 \end{lstlisting}
 
 \subsection{Inverted Segment Tree}
@@ -1242,6 +1475,78 @@ ll consult(int root,int l,int r, int a,int b)
     return consult(2*root,l,mid,a,min(b,mid))+
     consult(2*root+1,mid+1,r,max(mid+1,a),b);
 }
+\end{lstlisting}
+
+\subsection{Segment Tree Maximum Subarray (Class-based)}
+
+\begin{lstlisting}[style=compactcpp]
+// Segment Tree for maximum subarray sum queries with point updates
+// Maintains prefix max, suffix max, total sum, and overall max for each segment
+typedef struct Node{
+    ll u,l,r,zum;
+    Node(){
+        u = INT_MIN, l = INT_MIN, r=INT_MIN, zum = 0;
+    }
+ 
+    Node(ll a, ll b, ll c, ll d){
+        u = a;
+        l = b;
+        r = c;
+        zum = d;
+    }
+};
+ 
+class SegmentTree{
+    private:
+        vector<Node> segtree;
+        int n;
+        int d;
+    
+    public:
+        Node combine(Node a, Node b){
+            ll u = max({a.u,b.u,a.r+b.l});
+            ll l = max(a.l,b.l + a.zum);
+            ll r = max(a.r+b.zum, b.r);
+            ll zum = a.zum + b.zum;
+ 
+            return Node(u,l,r,zum);
+        }
+        void build(vector<int> &a){
+            n = a.size();
+            d=1;
+            while(d<n) d<<=1;
+            segtree.assign(2*d, Node());
+            for(int i=0; i<n; i++){
+                segtree[d+i].u = max(a[i], 0);
+                segtree[d+i].l = max(a[i],0);
+                segtree[d+i].r = max(a[i], 0);
+                segtree[d+i].zum = a[i];
+            }
+                
+            for(int i=d-1; i>=1; i--)
+                segtree[i] = combine(segtree[2*i], segtree[2*i+1]);
+            
+            
+        }
+ 
+        void update(int pos, int k){
+            pos+=d;
+            segtree[pos].u = max(0,k);
+            segtree[pos].l = max(0,k);
+            segtree[pos].r = max(0,k);
+            segtree[pos].zum = k;
+            
+            while(pos>1){ 
+                pos>>=1; 
+                segtree[pos] = combine(segtree[2*pos], segtree[2*pos+1]);
+            }
+        }
+        
+        ll query(){
+            return segtree[1].u;
+        }
+ 
+};
 \end{lstlisting}
 
 \subsection{Persistent Array}
@@ -1865,6 +2170,76 @@ bool isPrefix(TrieNode *root, const string &prefix)
   }
 \end{lstlisting}
 
+\subsection{Trie (Class-based with DP)}
+
+\begin{lstlisting}[style=compactcpp]
+// Trie data structure with insert, search, prefix checking, and DP for string formation
+// arnsDP: counts ways to form string s using words in the trie (word break problem)
+class Trie{
+private:
+    Trie *children[26];
+    bool term_st; // is_end
+ 
+    Trie* searchPrefix(const string &p){
+        Trie* node = this;
+ 
+        for(char c:p){
+            int pos = c - 'a';
+            if(!node->children[pos]) return nullptr;
+            node = node->children[pos];
+        }
+        return node;
+    }
+ 
+public:
+    Trie() : term_st(false) {
+        for(int i=0; i<26; i++)
+            children[i] = nullptr;
+    }
+    
+    void insert(string word) {
+        Trie* node = this;
+        for(char c:word){
+            int pos = c - 'a';
+            if(!node->children[pos]) node->children[pos] = new Trie();
+            node = node->children[pos];
+        }
+ 
+        node->term_st = true;
+    }
+    
+    bool search(string word) {
+        Trie* node = searchPrefix(word);
+        return node != nullptr && node->term_st;
+    }
+    
+    bool startsWith(string prefix) {
+        Trie* node = searchPrefix(prefix);
+        return node != nullptr;
+    }
+ 
+    int arnsDP(string s, int n){
+        vector<int> dp(n+1, 0);
+        // dp[i] -> ways to form the prefix s[0..i-1]
+        dp[0] = 1;
+ 
+        for(int i = 0; i < n; i++){
+            Trie *it = this; // Iterate the Trie from the root
+            for(int j = i; j < n; j++){
+                int pos = s[j] - 'a';
+                if(!it->children[pos]) break;
+                it = it->children[pos];
+ 
+                if(it->term_st)
+                    dp[j+1] = (dp[j+1] + dp[i]) % MOD;
+                
+            }
+        }
+        return dp[n];
+    }
+};
+\end{lstlisting}
+
 \subsection{Palindromic Tree}
 
 \begin{lstlisting}[style=compactcpp]
@@ -2138,6 +2513,378 @@ void output (pitem t) {
 }
 \end{lstlisting}
 
+\subsection{Treap with Lazy Propagation (Full Featured)}
+
+\begin{lstlisting}[style=compactcpp]
+// Treap with lazy propagation supporting multiple operations:
+// insert, erase, query (sum/min/max), update, replace, reverse, cyclic shift
+// 0-indexed array operations with O(log n) complexity
+struct node {
+    int val, sz, prior, lazy, sum, mx, mn, repl;
+    bool repl_flag, rev;
+    node *l, *r, *par;
+    node() {
+      lazy = 0;
+      rev = 0;
+      sum = 0;
+      val = 0;
+      sz = 0;
+      mx = 0;
+      mn = 0;
+      repl = 0;
+      repl_flag = 0;
+      prior = 0;
+      l = NULL;
+      r = NULL;
+      par = NULL;
+    }
+    node(int _val) {
+      val = _val;
+      sum = _val;
+      mx = _val;
+      mn = _val;
+      repl = 0;
+      repl_flag = 0;
+      rev = 0;
+      lazy = 0;
+      sz = 1;
+      prior = rnd();
+      l = NULL;
+      r = NULL;
+      par = NULL;
+    }
+  };
+
+struct treap {
+  typedef node* pnode;
+  pnode root;
+  map<int, pnode> position;//positions of all the values
+  //clearing the treap
+  void clear() {
+    root = NULL;
+    position.clear();
+  }
+
+  treap() {
+    clear();
+  }
+
+  int size(pnode t) {
+    return t ? t->sz : 0;
+  }
+  void update_size(pnode &t) {
+    if(t) t->sz = size(t->l) + size(t->r) + 1;
+  }
+
+  void update_parent(pnode &t) {
+    if(!t) return;
+    if(t->l) t->l->par = t;
+    if(t->r) t->r->par = t;
+  }
+  //add operation
+  void lazy_sum_upd(pnode &t) {
+    if( !t or !t->lazy )    return;
+    t->sum += t->lazy * size(t);
+    t->val += t->lazy;
+    t->mx += t->lazy;
+    t->mn += t->lazy;
+    if( t->l )  t->l->lazy += t->lazy;
+    if( t->r )  t->r->lazy += t->lazy;
+    t->lazy = 0;
+  }
+  //replace update
+  void lazy_repl_upd(pnode &t) {
+    if( !t or !t->repl_flag )   return;
+    t->val = t->mx = t->mn = t->repl;
+    t->sum = t->val * size(t);
+    if( t->l ) {
+      t->l->repl = t->repl;
+      t->l->repl_flag = true;
+    }
+    if( t->r ) {
+      t->r->repl = t->repl;
+      t->r->repl_flag = true;
+    }
+    t->repl_flag = false;
+    t->repl = 0;
+  }
+  //reverse update
+  void lazy_rev_upd(pnode &t) {
+    if( !t or !t->rev ) return;
+    t->rev = false;
+    swap(t->l, t->r);
+    if( t->l )  t->l->rev ^= true;
+    if( t->r )  t->r->rev ^= true;
+  }
+  //reset the value of current node assuming it now
+  //represents a single element of the array
+  void reset(pnode &t) {
+    if(!t) return;
+    t->sum = t->val;
+    t->mx = t->val;
+    t->mn = t->val;
+  }
+  //combine node l and r to form t by updating corresponding queries
+  void combine(pnode &t, pnode l, pnode r) {
+    if(!l) {
+      t = r;
+      return;
+    }
+    if(!r) {
+      t = l;
+      return;
+    }
+    //Beware!!!Here t can be equal to l or r anytime
+    //i.e. t and (l or r) is representing same node
+    //so operation is needed to be done carefully
+    //e.g. if t and r are same then after t->sum=l->sum+r->sum operation,
+    //r->sum will be the same as t->sum
+    //so BE CAREFUL
+    t->sum = l->sum + r->sum;
+    t->mx = max(l->mx, r->mx);
+    t->mn = min(l->mn, r->mn);
+  }
+  //perform all operations
+  void operation(pnode &t) {
+    if( !t )    return;
+    reset(t);
+    lazy_rev_upd(t->l);
+    lazy_rev_upd(t->r);
+    lazy_repl_upd(t->l);
+    lazy_repl_upd(t->r);
+    lazy_sum_upd(t->l);
+    lazy_sum_upd(t->r);
+    combine(t, t->l, t);
+    combine(t, t, t->r);
+  }
+  //split node t in l and r by key k
+  //so first k+1 elements(0,1,2,...k) of the array from node t
+  //will be split in left node and rest will be in right node
+  void split(pnode t, pnode &l, pnode &r, int k, int add = 0) {
+    if(t == NULL) {
+      l = NULL;
+      r = NULL;
+      return;
+    }
+    lazy_rev_upd(t);
+    lazy_repl_upd(t);
+    lazy_sum_upd(t);
+    int idx = add + size(t->l);
+    if(t->l) t->l->par = NULL;
+    if(t->r) t->r->par = NULL; 
+    if(idx <= k)
+      split(t->r, t->r, r, k, idx + 1), l = t;
+    else
+      split(t->l, l, t->l, k, add), r = t;
+
+    update_parent(t);
+    update_size(t);
+    operation(t);
+  }
+  //merge node l with r in t
+  void merge(pnode &t, pnode l, pnode r) {
+    lazy_rev_upd(l);
+    lazy_rev_upd(r);
+    lazy_repl_upd(l);
+    lazy_repl_upd(r);
+    lazy_sum_upd(l);
+    lazy_sum_upd(r);
+    if(!l) {
+      t = r;
+      return;
+    }
+    if(!r) {
+      t = l;
+      return;
+    }
+
+    if(l->prior > r->prior)
+      merge(l->r, l->r, r), t = l;
+    else
+      merge(r->l, l, r->l), t = r;
+
+    update_parent(t);
+    update_size(t);
+    operation(t);
+  }
+  //insert val in position a[pos]
+  //so all previous values from pos to last will be right shifted
+  void insert(int pos, int val) {
+    if(root == NULL) {
+      pnode to_add = new node(val);
+      root = to_add;
+      position[val] = root;
+      return;
+    }
+
+    pnode l, r, mid;
+    mid = new node(val);
+    position[val] = mid;
+
+    split(root, l, r, pos - 1);
+    merge(l, l, mid);
+    merge(root, l, r);
+
+	/*pnode x = new Node(val),merge(root,root,x);*/
+  }
+  //erase from qL to qR indexes
+  //so all previous indexes from qR+1 to last will be left shifted qR-qL+1 times
+  void erase(int qL, int qR) {
+    pnode l, r, mid;
+
+    split(root, l, r, qL - 1);
+    split(r, mid, r, qR - qL);
+    merge(root, l, r);
+  }
+  //returns answer for corresponding types of query
+  int query(int qL, int qR) {
+    pnode l, r, mid;
+
+    split(root, l, r, qL - 1);
+    split(r, mid, r, qR - qL);
+
+    int answer = mid->sum;
+    merge(r, mid, r);
+    merge(root, l, r);
+
+    return answer;
+  }
+  //add val in all the values from a[qL] to a[qR] positions
+  void update(int qL, int qR, int val) {
+    pnode l, r, mid;
+
+    split(root, l, r, qL - 1);
+    split(r, mid, r, qR - qL);
+    lazy_repl_upd(mid);
+    mid->lazy += val;
+
+    merge(r, mid, r);
+    merge(root, l, r);
+  }
+  //reverse all the values from qL to qR
+  void reverse(int qL, int qR) {
+    pnode l, r, mid;
+
+    split(root, l, r, qL - 1);
+    split(r, mid, r, qR - qL);
+
+    mid->rev ^= 1;
+    merge(r, mid, r);
+    merge(root, l, r);
+  }
+  //replace all the values from a[qL] to a[qR] by v
+  void replace(int qL, int qR, int v) {
+    pnode l, r, mid;
+
+    split(root, l, r, qL - 1);
+    split(r, mid, r, qR - qL);
+    lazy_sum_upd(mid);
+    mid->repl_flag = 1;
+    mid->repl = v;
+    merge(r, mid, r);
+    merge(root, l, r);
+  }
+  //it will cyclic right shift the array k times
+  //so for k=1, a[qL]=a[qR] and all positions from ql+1 to qR will
+  //have values from previous a[qL] to a[qR-1]
+  //if you make left_shift=1 then it will to the opposite
+  void cyclic_shift(int qL, int qR, int k, bool left_shift = 0) {
+    if(qL == qR) return;
+    k %= (qR - qL + 1);
+
+    pnode l, r, mid, fh, sh;
+    split(root, l, r, qL - 1);
+    split(r, mid, r, qR - qL);
+
+    if(left_shift == 0) split(mid, fh, sh, (qR - qL + 1) - k - 1);
+    else split(mid, fh, sh, k - 1);
+    merge(mid, sh, fh);
+
+    merge(r, mid, r);
+    merge(root, l, r);
+  }
+  bool exist;
+  //returns index of node curr
+  int get_pos(pnode curr, pnode son = nullptr) {
+    if(exist == 0) return 0;
+    if(curr == NULL) {
+      exist = 0;
+      return 0;
+    }
+    if(!son) {
+      if(curr == root) return size(curr->l);
+      else return size(curr->l) + get_pos(curr->par, curr);
+    }
+
+    if(curr == root) {
+      if(son == curr->l) return 0;
+      else return size(curr->l) + 1;
+    }
+
+    if(curr->l == son) return get_pos(curr->par, curr);
+    else return get_pos(curr->par, curr) + size(curr->l) + 1;
+  }
+  //returns index of the value
+  //if the value has multiple positions then it will
+  //return the last index where it was added last time
+  //returns -1 if it doesn't exist in the array
+  int get_pos(int value) {
+    if(position.find(value) == position.end()) return -1;
+    exist = 1;
+    int x = get_pos(position[value]);
+    if(exist == 0) return -1;
+    else return x;
+  }
+  //returns value of index pos
+  int get_val(int pos) {
+    return query(pos, pos);
+  }
+  //returns size of the treap
+  int size() {
+    return size(root);
+  }
+  //inorder traversal to get indexes chronologically
+  void inorder(pnode cur) {
+    if(cur == NULL) return;
+    operation(cur);
+    inorder(cur->l);
+    cout << cur->val << ' ';
+    inorder(cur->r);
+  }
+  //print current array values serially
+  void print_array() {
+//      for(int i=0;i<size();i++) cout<<get_val(i)<<' ';
+//      cout<<nl;
+    inorder(root);
+    cout << nl;
+  }
+  bool find(int val) {
+    if(get_pos(val) == -1) return 0;
+    else return 1;
+  }
+};
+
+treap t;
+//Beware!!!here treap is 0-indexed
+
+int main() {
+  int i, j, k, n, m, l, r, q;
+  for(i = 0; i < 10; i++) t.insert(i, i * 10);
+  t.cyclic_shift(4, 5, 1);
+  t.update(2, 5, 1);
+  t.replace(2, 5, 100);
+  t.reverse(2, 9);
+  t.replace(2, 5, 200);
+  cout << t.query(0, 7) << nl;
+  t.cyclic_shift(2, 3, 2, 1);
+  cout << t.get_pos(20) << nl;
+  t.erase(2, 2);
+  cout << t.find(30) << nl;
+  t.print_array();
+  return 0;
+}
+\end{lstlisting}
+
 % --------------------------------------------------------------------
 
 \section{Graph Theory}
@@ -2215,6 +2962,52 @@ void find_cycle() {
             cout << v << " ";
         cout << endl;
     }
+}
+\end{lstlisting}
+
+\subsection{Cycle Detection DFS - Stack Based}
+
+\begin{lstlisting}[style=compactcpp]
+// Cycle detection using stack to track the current path (for directed graphs)
+int n; // number of vertices
+vector<vector<int>> adj(MAX);
+stack<int> st;
+vector<bool> visited(MAX);
+vector<bool> stFlg(MAX);
+vector<int> arns;
+int depth = 0;
+ 
+bool dfs(int v) {
+    visited[v] = true;
+    st.push(v);
+    stFlg[v] = true;
+    for(auto &z : adj[v]){
+        if(!visited[z])
+            if(dfs(z)) return true;
+        
+        if(stFlg[z]){
+            st.push(z);
+            return true;
+        }
+    }
+ 
+    st.pop();
+    stFlg[v] = false;
+    return false;
+}
+ 
+void printCycle(){
+    int tmp = st.top();
+    while(!st.empty()){
+        arns.push_back(st.top());
+        st.pop();
+        if(arns.back() == tmp and arns.size() != 1) break;
+    }
+    reverse(arns.begin(), arns.end());
+ 
+    cout<<arns.size()<<endl;
+    for(auto v: arns) cout<<v<<" ";
+    cout<<endl;
 }
 \end{lstlisting}
 
@@ -2635,6 +3428,104 @@ bool spfa(int s, vector<int>& d) {
 }
 \end{lstlisting}
 
+\subsection{Bellman Ford - Negative Cycle Detection}
+
+\begin{lstlisting}[style=compactcpp]
+// Bellman-Ford algorithm for detecting and finding negative cycles
+struct Edge {
+    int u, v;
+    ll w;
+};
+ 
+void bellmanFord(int V, int E, vector<Edge>& edges, int start) {
+    vector<ll> dist(V, INF);
+    dist[start] = 0;
+    vector<int> prev(V, -1);
+ 
+    int x;
+    for (int i = 0; i < V; i++){
+        x = -1;
+        for (int j = 0; j < E; j++){
+            int u = edges[j].u;
+            int v = edges[j].v;
+            ll weight = edges[j].w;
+            if (dist[u] != INF && dist[u] + weight < dist[v]) {
+                dist[v] = max(-INF, (ll) dist[u] + weight);
+                prev[v] = u;
+                x = v;
+            }
+        }
+    }
+ 
+    if(x == -1){
+        cout<<"NO"<<endl; // No negative Cycle
+    }else{
+        cout<<"YES"<<endl;
+        int curr = x;
+        for (int i = 0; i < V; ++i)
+            curr = prev[curr];
+        
+        vector<int> cycle;
+        for (int x = curr;; x = prev[x]) {
+            cycle.push_back(x);
+            if (x == curr and cycle.size() > 1) break;
+        }
+ 
+        
+        reverse(cycle.begin(), cycle.end());
+ 
+        for(int v : cycle)
+            cout<<v+1<<" ";
+        //cout<<cycle[0]+1<<endl;
+    }
+ 
+    
+}
+\end{lstlisting}
+
+\subsection{Bellman Ford - Handling Negative Infinity}
+
+\begin{lstlisting}[style=compactcpp]
+// Bellman-Ford with proper handling of negative infinity distances
+vector<ll> dist(MAX, INF);
+ 
+struct Edge {
+    int u, v;
+    ll w;
+};
+ 
+void bellmanFord(int V, int E, vector<Edge>& edges, int start) {
+    dist[start] = 0;
+    vector<int> prev(V, -1);
+ 
+    for (int i = 0; i < V-1; i++){
+        for (int j = 0; j < E; j++){
+            int u = edges[j].u;
+            int v = edges[j].v;
+            ll w = edges[j].w;
+            if (dist[u] == INF) continue;
+            dist[v] = min(dist[v], w+dist[u]);
+            if (dist[v] > dist[u] + w){
+                dist[v] = max(MIN_INF, dist[u] + w);
+            }
+        }
+    }
+ 
+    for (int i = 0; i < V-1; i++){
+        for (int j = 0; j < E; j++){
+            int u = edges[j].u;
+            int v = edges[j].v;
+            ll w = edges[j].w;
+            if (dist[u] == INF) continue;
+            dist[v] = max(MIN_INF,dist[v]);
+            if (dist[u] == MIN_INF or dist[v] > dist[u] + w){
+                dist[v] = MIN_INF;
+            }
+        }
+    }
+ 
+}
+\end{lstlisting}
 
 \subsection{Floyd-Warshall}
 
@@ -2834,6 +3725,37 @@ void rdfs(int s,int d)
     {
         if(!visitados[c]) rdfs(c,d);
     }
+}
+\end{lstlisting}
+
+\subsection{SCC - Kosaraju Simple Implementation}
+
+\begin{lstlisting}[style=compactcpp]
+// Simple Kosaraju's algorithm for finding strongly connected components
+vector<vector<int>> adj(MAX);
+vector<vector<int>> t_adj(MAX);
+vector<int> v_id(MAX);
+bool visited[MAX];
+vector<int> order; // Append the respective nodes with dfsA order
+ 
+// Calculate vertex order
+void dfsA(int s){
+    visited[s] = true;
+    for(int u : adj[s]){
+        if(!visited[u])
+            dfsA(u);
+    }
+    order.push_back(s);
+}
+ 
+// Set its component id to every vertex
+void dfsB(int s, int c){
+    visited[s] = true;
+    for(int u: t_adj[s]){
+        if(!visited[u])
+            dfsB(u,c);
+    }
+    v_id[s] = c;
 }
 \end{lstlisting}
 
@@ -3751,6 +4673,79 @@ void dfs2(int node = 1, int parent = 0, int to_p = 0) {
 }
 \end{lstlisting}
 
+\subsection{Tree Distances (All Longest Paths - Rerooting)}
+
+\begin{lstlisting}[style=compactcpp]
+// Tree rerooting DP to find maximum distance from each node to any other node
+// f(x) = max distance from x to any node in its subtree
+// g(x) = max distance from x to any node outside its subtree
+// ans(x) = max(f(x), g(x)) = longest path starting from x
+vector<vector<int>> adj(MAX);
+vector<int> f(MAX,0); // f(x) = maximum distance from node x to any node of its subtree
+vector<int> g(MAX,0); // g(x) = maximum distance from any node to x  outside its subtree
+vector<int> arns(MAX,0); // arns(x) = max(f(x),g(x))
+ 
+ 
+void dfsA(int s, int e){
+    for(auto u : adj[s]){
+        if(u == e) continue;
+        dfsA(u,s);
+        if(f[u]+1 > f[s]){ // Maximum distance + 1 of u > Max dist of predecessor
+            g[s] = f[s];   // Maximum distance from any node outside of s subtree is f[s] 
+            f[s] = f[u] + 1;
+        }else if(f[u]+1>g[s]){
+            g[s] = f[u]+1; // Maximum distance from any node outside of s subtree is f[u]+1
+        }
+    }
+}
+ 
+void dfsB(int s, int e, int to){
+    arns[s] = max(to, f[s]);
+    for(auto u : adj[s]){
+        if(u == e) continue;
+        if(f[u]+1 == f[s]) dfsB(u,s, max(to,g[s])+1);
+        else dfsB(u,s, arns[s]+1);
+    }
+}
+\end{lstlisting}
+
+\subsection{Tree Hashing}
+
+\begin{lstlisting}[style=compactcpp]
+// Tree hashing using logarithmic combination for tree isomorphism
+vector<ld> h_map;
+vector<ld> t2_map;
+vector<int> d; 
+vector<vector<int>> tree;
+vector<vector<int>> tree2;
+int arns = 0;
+ 
+ld hash_tree1(int u, int prev){
+    vector<ld> hashes;
+    for(int v : tree[u]){
+        if(v == prev) continue;
+        d[v] = d[u] + 1;
+        hashes.push_back(hash_tree1(v,u));
+    }
+ 
+    if(hashes.empty()){
+        h_map[u] = 42.0;
+        return 42.0;
+    }
+        
+    sort(hashes.begin(),hashes.end());
+    
+    ld hash_zum = 0.0;
+    for(ld h : hashes){
+        hash_zum += log2l(h);
+    }
+ 
+    ld def = 42.0 + hash_zum;
+    h_map[u] = def;
+    return def;
+}
+\end{lstlisting}
+
 \section{Flows}
 
 \subsection{Ford-Fulkerson Maximum Flow}
@@ -4079,26 +5074,29 @@ cout<<dp[x]<<endl;
 \subsection{Coin Problem (Count sorted ways)}
 
 \begin{lstlisting}[style=compactcpp]
-vector<ll> coins(n);
-for(int i=0; i<n; i++){
-    cin>>coins[i];
-}
+// Count ways to make sum x using ordered coin combinations (avoids counting permutations)
+void CoinDPSorted(){
+    int n, x; cin>>n>>x;
+    vector<ll> coins(n);
+    for(int i=0; i<n; i++){
+        cin>>coins[i];
+    }
     
-int dp[102][1000005];
-dp[0][0] = 1;
-for(int i=1; i<=n; i++){
-    for(int j=0; j<=x; j++){
-        dp[i][j] = dp[i-1][j];
-        int l = j-coins[i-1];
-        if(l>=0){
-            dp[i][j] += (dp[i][l])%MOD;
-            dp[i][j]%=MOD;
+    int dp[102][1000005];
+    dp[0][0] = 1;
+    for(int i=1; i<=n; i++){
+        for(int j=0; j<=x; j++){
+            dp[i][j] = dp[i-1][j];
+            int l = j-coins[i-1];
+            if(l>=0){
+                dp[i][j] += (dp[i][l])%MOD;
+                dp[i][j]%=MOD;
+            }
         }
     }
+
+    cout<<dp[n][x]%MOD<<endl;
 }
-        
-        
-cout<<dp[n][x]%MOD<<endl;
 \end{lstlisting}
 
 \subsection{Coin Problem (Minimum)}
@@ -4156,6 +5154,42 @@ for(int i=0; i<n; i++){
     }
 }
 cout<<dp[n-1][n-1]%MOD<<endl;
+\end{lstlisting}
+
+\subsection{2D Prefix Sum (Range Queries)}
+
+\begin{lstlisting}[style=compactcpp]
+// 2D Prefix Sum: efficiently computes sum of any rectangular subgrid in O(1)
+// Build in O(n*m), query in O(1) using inclusion-exclusion principle
+void prefixSum2D(){
+    int n,q; cin>>n>>q;
+    char forest[n+1][n+1];
+ 
+    for(int i=1; i<=n; i++){
+        for(int j=1; j<=n; j++){
+            cin>>forest[i][j];
+        }
+    }
+    
+    vector<vector<int>> dp(n+1, vector<int> (n+1,0));
+    
+ 
+    for(int i=1; i<=n; i++){
+        for(int j=1; j<=n; j++){
+            dp[i][j] =  dp[i][j-1] + dp[i-1][j] - dp[i-1][j-1];
+            if(forest[i][j] == '*') dp[i][j]++;
+        }
+    }
+ 
+    
+ 
+    for(int i=0; i<q; i++){
+        int a,b,c,d;
+        cin>>a>>b>>c>>d;
+        cout<<dp[c][d] - dp[a-1][d] - dp[c][b-1] + dp[a-1][b-1]<<endl;
+    }
+    
+}
 \end{lstlisting}
 
 \subsection{Longest Increasing Subsequence}
@@ -4246,6 +5280,7 @@ int lcs(string &s1, string &s2) {
 \subsection{LCS with printing}
 
 \begin{lstlisting}[style=compactcpp]
+// Longest Common Subsequence with path reconstruction - returns the actual LCS sequence
 vector<int> lcs(vector<int> const& a, vector<int> const &b, int n, int m){
     vector<vector<int>> dp (n+1,vector<int> (m+1,0));
 
@@ -4294,6 +5329,37 @@ vector<int> lcs(vector<int> const& a, vector<int> const &b, int n, int m){
     }
 
     cout<<dp[x]<<endl;
+\end{lstlisting}
+
+\subsection{Subset Sum Equal Partition}
+
+\begin{lstlisting}[style=compactcpp]
+// Count ways to partition numbers 1..n-1 into two subsets with equal sum
+// Uses DP to count subsets that sum to half of total sum
+// Divides result by 2 since each partition is counted twice
+void SubsetsEqualZum(){
+    int n; cin>>n;
+ 
+    int tw = n*(n+1)/2;
+    if(tw%2 == 1){
+        cout<<0<<endl;
+        return;
+    }
+    tw = tw/2;
+ 
+    vector<int> dp(tw+1,0);
+ 
+    dp[0] = 1;
+ 
+    for(int i=1; i<n; i++){
+        for(int j=tw; j>=i; j--){
+            dp[j] = (dp[j] + dp[j-i])%MOD;
+        }
+    }
+ 
+    cout<<dp[tw]<<endl;
+    
+}
 \end{lstlisting}
 
 \subsection{Edit Distance}
@@ -4680,6 +5746,41 @@ ll modInv(ll a, ll mod = MOD) {
 }
 
 \end{lstlisting}
+
+\subsection{XOR Basis (Linear Basis)}
+\begin{lstlisting}[style=compactcpp]
+// XOR Basis: finds linearly independent set of numbers for XOR operations
+// Counts number of distinct XOR subset sums (2^sz where sz is basis size)
+const int DIM = 30; // or 60 for long long
+int basis[DIM];
+int sz = 0;
+
+void add(int val){
+    for(int i=DIM-1;i>=0;i--)
+    {
+        if((val&(1<<i))==0) continue;
+        if(basis[i]==0){
+            basis[i]=val;
+            sz++;
+            return;
+        }
+        val^=basis[i];
+    }
+}
+
+// Number of subset xors
+inline void solve()
+{
+    int n; cin>>n;
+    FO(i,n){
+        int aux; cin>>aux;
+        add(aux);
+    }
+    
+    cout<<(1<<sz)<<endl;
+}
+\end{lstlisting}
+
 \subsection{Binomial Coefficients}
 \begin{lstlisting}[style=compactcpp]
 long long binomial_coefficient(int n, int k) {
@@ -4990,6 +6091,55 @@ for (int i = 0; i < n; i++){
 
 \end{lstlisting}
 
+\subsection{FFT Alternative Implementation}
+
+\begin{lstlisting}[style=compactcpp]
+// Fast Fourier Transform using bit-reversal and Cooley-Tukey algorithm
+const ll MOD = 1e9+7;
+ 
+const int MAX = pow(2,18);
+ 
+typedef complex<double> cd;
+double PI = acos(-1);
+ 
+vector<cd> fft(vector<cd> a, int d = 1) {
+    int n = a.size();
+    vector<cd> r(n);
+ 
+    for (int k = 0; k < n; k++) {
+        int b = 0;
+        for (int z = 1; z < n; z *= 2) {
+            b *= 2;
+            if (k & z)
+                b++;
+        }
+        r[b] = a[k];
+    }
+ 
+    for (int m = 2; m <= n; m *= 2) {
+        cd wm = exp(cd{0, d * 2 * PI / m});
+ 
+        for (int k = 0; k < n; k += m) {
+            cd w = 1;
+            for (int j = 0; j < m / 2; j++) {
+                cd u = r[k + j];
+                cd t = w * r[k + j + m / 2];
+                r[k + j] = u + t;
+                r[k + j + m / 2] = u - t;
+                w = w * wm;
+            }
+        }
+    }
+ 
+    if (d == -1) {
+        for (int i = 0; i < n; i++)
+            r[i] /= n;
+    }
+ 
+    return r;
+}
+\end{lstlisting}
+
 \subsection{NTT}
 
 \begin{lstlisting}[style=compactcpp]
@@ -5258,6 +6408,39 @@ int main() {
 	}
 
 	cout << base[0][1];
+}
+\end{lstlisting}
+
+\subsection{Matrix Multiplication and Exponentiation (General)}
+
+\begin{lstlisting}[style=compactcpp]
+// Matrix multiplication: multiplies A (n x m) with B (m x p) to get result (n x p)
+vector<vector<int>> mat_mult(vector<vector<int>> &A, vector<vector<int>> &B, int n, int m, int p){
+    vector<vector<int>> arns(n,vector<int> (p));
+    for(int i=0; i<n; i++){
+        for(int j=0; j<m; j++){
+            for(int k=0; k<p; k++){ 
+                arns[i][k] += A[i][j] * B[j][k];
+                arns[i][k]%=MOD;
+            }   
+        }
+    }
+ 
+    return arns;
+}
+
+// Matrix exponentiation: computes A^n for a square matrix A
+vector<vector<int>> mat_pow(vector<vector<int>> &A, int n){
+    int sz = A.size();
+    vector<vector<int>> arns(sz,vector<int> (sz,0));
+    for(int i=0; i<sz; i++)
+        arns[i][i] = 1;
+    while(n>0){
+        if(n&1) arns = mat_mult(arns,A,sz,sz,sz);
+        A = mat_mult(A,A,sz,sz,sz);
+        n>>=1;
+    }
+    return arns;
 }
 \end{lstlisting}
 
@@ -6585,6 +7768,108 @@ int majorityElement(vector<int>& nums) {
     }
 
     return nums[r];
+}
+\end{lstlisting}
+
+\subsection{Sliding Window Minimum}
+
+\begin{lstlisting}[style=compactcpp]
+// Sliding window minimum using monotonic deque
+// Maintains minimum element in each window of size k efficiently in O(n)
+// Uses deque to store indices of potential minimum elements in increasing order
+inline void solve()
+{
+    int n,k; cin>>n>>k;
+    ll x,a,b,c; cin>>x>>a>>b>>c;
+    
+    ll lf=x,rt=x;
+    ll res=0;
+    deque<pair<int,int>> q;
+    q.push_back({x,0});
+    FO(i,k-1){
+        rt=(a*rt+b)%c;
+        while(!q.empty() && rt<q.back().X){
+           q.pop_back();
+        }
+        q.push_back({rt,i+1});
+    }
+    int t=n-k+1;
+    int idx_left=0;
+    int idx_right=k-1;
+    while(t--)
+    {
+        res^=q.front().X;
+        if(q.front().Y==idx_left){
+            q.pop_front();
+        }
+        lf=(a*lf+b)%c;
+        idx_left++;
+        rt=(a*rt+b)%c;
+        idx_right++;
+        while(!q.empty() && rt<q.back().X){
+           q.pop_back();
+        }
+        q.push_back({rt,idx_right});
+        
+    }
+    cout<<res<<endl;
+}
+\end{lstlisting}
+
+\subsection{Sliding Window OR}
+
+\begin{lstlisting}[style=compactcpp]
+// Sliding window OR using prefix and suffix arrays
+// Computes bitwise OR for all windows of size k efficientlAdd the following code.
+1. Search for a corresponding section
+2. Add or update the code accordingly
+3. Add a small comment at the start to show what it does:
+
+y in O(n)
+// Uses prefix OR from block starts and suffix OR to block ends
+inline void solve()
+{
+    int n,k; cin>>n>>k;
+    ll x,a,b,c; cin>>x>>a>>b>>c;
+    arr[1]=x;
+    prefix[1]=x;
+    for(int i=2;i<=n;i++)
+    {
+        arr[i]=(a*arr[i-1]+b)%c;
+        if(i%k==1)
+        {
+            prefix[i]=arr[i];
+        }
+        else{
+            prefix[i]=arr[i]|prefix[i-1];
+        }
+    }
+    suffix[n]=arr[n];
+    for(int i=n-1;i;i--){
+        if(i%k==0)
+        {
+            suffix[i]=arr[i];
+        }
+        else{
+            suffix[i]=arr[i]|suffix[i+1];
+        }
+    }
+    int lf=1,rt=k;
+    ll res=0;
+    if(k==1){
+        FO(i,n-k+1){
+            res^=arr[i+1];
+        }
+    }
+    else{
+        FO(i,n-k+1)
+        {
+            res^=suffix[lf]|prefix[rt];
+            lf++; rt++;
+        }
+    }
+   
+    cout<<res<<endl;
 }
 \end{lstlisting}
 
